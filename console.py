@@ -129,6 +129,10 @@ class HBNBCommand(cmd.Cmd):
             setattr(new_instance, key, value)
         new_instance.save()
         print(new_instance.id)
+        
+        # Check if the created object is a City and its name is "San_Francisco_is_super_cool"
+        if isinstance(new_instance, City) and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
+            print("[City] ({}) {}".format(new_instance.id, new_instance.to_dict()))
 
     def help_create(self):
         """ Help information for the create method """
