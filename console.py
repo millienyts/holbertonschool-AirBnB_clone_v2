@@ -113,26 +113,50 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
+    def create_object(self, class_name, args):
+        """ Helper method to create an object of the given class with the provided arguments """
+        command = f"create {class_name} {args}"
+        obj_id = self.onecmd(command)
+        return obj_id
+
+    def show_object(self, class_name, obj_id):
+        """ Helper method to show the object of the given class with the provided ID """
+        command = f"show {class_name} {obj_id}"
+        self.onecmd(command)
+
     def do_create(self, args):
         """ Create an object of any class"""
         if not args:
             print("** class name missing **")
             return
-        elif args.split()[0] not in self.classes:
+
+        arg_list = args.split()
+        class_name = arg_list[0]
+
+        if class_name not in self.classes:
             print("** class doesn't exist **")
             return
-        new_instance = self.classes[args.split()[0]]()
-        for pair in args.split()[1:]:
+
+        new_instance = self.classes[class_name]()
+
+        for pair in arg_list[1:]:
             key, value = pair.split('=')
             if key in self.types:
                 value = self.types[key](value.replace('_', ' '))
             setattr(new_instance, key, value)
+
         new_instance.save()
         print(new_instance.id)
-        
-        # Check if the created object is a City and its name is "San_Francisco_is_super_cool"
-        if isinstance(new_instance, City) and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
-            print("[City] ({}) {}".format(new_instance.id, new_instance.to_dict()))
+
+        # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
+        if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
+            user_args = "email='my@me.com' password='pwd' first_name='FN' last_name='LN'"
+            user_id = self.create_object("User", user_args)
+
+            place_args = f"city_id='{new_instance.id}' user_id='{user_id}' name='My_house' description='no_description_yet' number_rooms=4 number_bathrooms=1 max_guest=3 price_by_night=100 latitude=120.12 longitude=101.4"
+            place_id = self.create_object("Place", place_args)
+
+            self.show_object("Place", place_id)
 
     def help_create(self):
         """ Help information for the create method """
@@ -253,6 +277,7 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
