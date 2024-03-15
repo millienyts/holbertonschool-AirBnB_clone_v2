@@ -49,19 +49,20 @@ class TestConsole(unittest.TestCase):
         except Exception:
             pass
             
-   def test_create_command(self):
-        """Test 'create' command adds new instance to FileStorage."""
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            with patch('sys.stdin', new_callable=StringIO) as mock_stdin:
-                mock_stdin.write('create BaseModel\n')
-                mock_stdin.seek(0)
-                HBNBCommand().onecmd('create BaseModel')
-                output = mock_stdout.getvalue().strip()
-                self.assertTrue(len(output) > 0)
-                # Check if the created ID exists in storage
-                all_objs = storage.all()
-                obj_exists = any(['BaseModel.' + output in key for key in all_objs.keys()])
-                self.assertTrue(obj_exists)
+def test_create_command(self):
+    """Test 'create' command adds new instance to FileStorage."""
+    with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+        with patch('sys.stdin', new_callable=StringIO) as mock_stdin:
+            mock_stdin.write('create BaseModel\n')
+            mock_stdin.seek(0)
+            HBNBCommand().onecmd('create BaseModel')
+            output = mock_stdout.getvalue().strip()
+            self.assertTrue(len(output) > 0)
+            # Check if the created ID exists in storage
+            all_objs = models.storage.all()
+            obj_exists = any(['BaseModel.' + output in key for key in all_objs.keys()])
+            self.assertTrue(obj_exists)
+
 
     def test_pep8_conformance_console(self):
         """Test that console.py conforms to PEP8."""
@@ -103,13 +104,14 @@ class TestConsole(unittest.TestCase):
     def test_create_errors(self):
         """Test create command errors."""
         with patch("sys.stdout", new=StringIO()) as f:
-            self.consol.onecmd("create")
+            self.console.onecmd("create")
             self.assertEqual(
                 "** class name missing **\n", f.getvalue())
             with patch("sys.stdout", new=StringIO()) as f:
-                self.consol.onecmd("create asdfsfsd")
+                self.console.onecmd("create asdfsfsd")
                 self.assertEqual(
                     "** class doesn't exist **\n", f.getvalue())
+
 
     @unittest.skipIf(type(models.storage) == DBStorage, "Test DBS")
     def test_create(self):
