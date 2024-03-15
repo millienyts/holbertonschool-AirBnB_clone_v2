@@ -1,16 +1,34 @@
-import unittest
+#!/usr/bin/python3
+""" """
+from tests.test_models.test_base_model import test_basemodel
 from models.user import User
 
-class TestUser(unittest.TestCase):
-    """Test suite for User class."""
 
-    def test_user_attributes(self):
-        """Test User default attributes."""
-        user = User()
-        self.assertEqual(user.email, "")
-        self.assertEqual(user.password, "")
-        self.assertEqual(user.first_name, "")
-        self.assertEqual(user.last_name, "")
+class test_User(test_basemodel):
+    """ """
 
-if __name__ == '__main__':
-    unittest.main()
+    def __init__(self, *args, **kwargs):
+        """ """
+        super().__init__(*args, **kwargs)
+        self.name = "User"
+        self.value = User
+
+    def test_first_name(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.first_name), str)
+
+    def test_last_name(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.last_name), str)
+
+    def test_email(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.email), str)
+
+    def test_password(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.password), str)
