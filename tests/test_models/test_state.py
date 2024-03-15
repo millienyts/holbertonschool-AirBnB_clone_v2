@@ -1,29 +1,19 @@
 #!/usr/bin/python3
-"""Unit tests for State class."""
-import unittest
-import os
+""" """
+from tests.test_models.test_base_model import test_basemodel
 from models.state import State
-from models.base_model import BaseModel
 
-@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "Skipping DB storage tests")
-class TestState(unittest.TestCase):
-    """Test cases for the State class."""
 
-    def setUp(self):
-        """Set up test methods."""
-        pass
+class test_state(test_basemodel):
+    """ """
 
-    def tearDown(self):
-        """Tear down test methods."""
-        pass
+    def __init__(self, *args, **kwargs):
+        """ """
+        super().__init__(*args, **kwargs)
+        self.name = "State"
+        self.value = State
 
-    # Example of a test method
-    def test_example(self):
-        """Example test that always passes."""
-        self.assertTrue(True)
-
-# Add more test methods as needed
-
-if __name__ == "__main__":
-    unittest.main()
-
+    def test_name3(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.name), str)
