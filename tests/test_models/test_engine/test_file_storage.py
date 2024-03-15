@@ -8,12 +8,23 @@ from models import (BaseModel, User, State, City, Amenity, Place, Review,
                     engine)
 from models.engine.file_storage import FileStorage
 
-class FileStorageTestCase(unittest.TestCase):
-    '''Series of tests for the FileStorage class.'''
-
+class TestConsoleFileStorage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        """Setting up the test scenario before all tests."""
+        """Set up test environment before all tests."""
+        cls.console = HBNBCommand()
+
+    def setUp(self):
+        """Clear FileStorage objects before each test."""
+        storage.reload()
+
+    def test_create_base_model(self):
+        """Test 'create BaseModel' command."""
+        with patch('sys.stdout', new=StringIO()) as mock_output:
+            self.console.onecmd("create BaseModel")
+            bm_id = mock_output.getvalue().strip()
+        self.assertTrue(bm_id)
+        self.assertIn("BaseModel.{}".format(bm_id), storage.all())
 
         try:
             os.rename("file.json", "backup_file.json")
