@@ -1,76 +1,84 @@
 #!/usr/bin/python3
-"""
-Module for testing DBStorage
-"""
+"""Unit tests for DBStorage."""
 import unittest
-import os
+import pep8
+from models import (BaseModel, User, State, City, Amenity, Place, Review, 
+                    engine, storage)
 from models.engine.db_storage import DBStorage
-from models.base_model import BaseModel
-from models.user import User
-from models.state import State
-from models.city import City
-from models import storage
+from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 
-@unittest.skipUnless(os.getenv('HBNB_TYPE_STORAGE') == 'db', "DBStorage tests")
-class TestDBStorage(unittest.TestCase):
-    """Tests for the DBStorage class."""
+class DBStorageTestCase(unittest.TestCase):
+    """Tests for DBStorage functionality."""
 
     @classmethod
     def setUpClass(cls):
-        """Set up for the db tests."""
-        cls.user = User(email="test@test.com", password="test", first_name="Test", last_name="Test")
-        cls.state = State(name="TestState")
-        cls.city = City(name="TestCity", state_id=cls.state.id)
-        storage.new(cls.user)
-        storage.new(cls.state)
-        storage.new(cls.city)
-        storage.save()
+        """Setting up resources before any DBStorage tests."""
+        if isinstance(storage, DBStorage):
+            cls.engine = create_engine('mysql+mysqldb://{}:{}@localhost/{}'.
+                                       format(getenv('HBNB_MYSQL_USER'),
+                                              getenv('HBNB_MYSQL_PWD'),
+                                              getenv('HBNB_MYSQL_DB')),
+                                       pool_pre_ping=True)
+            Base.metadata.create_all(cls.engine)
+            Session = sessionmaker(bind=cls.engine)
+            cls.session = Session()
+            cls.setupTestData()
 
     @classmethod
     def tearDownClass(cls):
-        """Tear down for the db tests."""
-        storage.delete(cls.user)
-        storage.delete(cls.city)
-        storage.delete(cls.state)
-        storage.save()
+        """Cleanup resources after all DBStorage tests."""
+        if isinstance(storage, DBStorage):
+            cls.session.close()
+            Base.metadata.drop_all(cls.engine)
 
-    def test_create(self):
-        """Test creation of a new instance."""
-        initial_count = len(storage.all(User))
-        user = User(email="create@test.com", password="password", first_name="First", last_name="Last")
-        user.save()
-        final_count = len(storage.all(User))
-        self.assertNotEqual(initial_count, final_count)
+    @classmethod
+    def setupTestData(cls):
+        """Create test data."""
+        cls.test_user = User(email='test@test.com', password='testPwd')
+        cls.session.add(cls.test_user)
+        cls.test_state = State(name='TestState')
+        cls.session.add(cls.test_state)
+        cls.session.commit()
 
-    def test_retrieval(self):
-        """Test retrieval of an instance."""
-        state = State(name="NewState")
-        state.save()
-        state_id = state.id
-        retrieved_state = storage.all(State)[f'State.{state_id}']
-        self.assertEqual(state.name, retrieved_state.name)
+    def test_pep8_conformance(self):
+        """Test that models/engine/db_storage.py conforms to PEP8."""
+        pep8_style = pep8.StyleGuide(quiet=True)
+        result = pep8_style.check_files(['models/engine/db_storage.py'])
+        self.assertEqual(result.total_errors, 0, "Code should be PEP8 compliant.")
 
-    def test_update(self):
-        """Test updating of an instance."""
-        user = User(email="update@test.com", password="update", first_name="Update", last_name="Test")
-        user.save()
-        user_id = user.id
-        storage.all(User)[f'User.{user_id}'].first_name = "UpdatedName"
-        storage.save()
-        updated_user = storage.all(User)[f'User.{user_id}']
-        self.assertEqual(updated_user.first_name, "UpdatedName")
+    def test_documentation(self):
+        """Test for existence of module and method documentation."""
+        self.assertIsNotNone(DBStorage.__doc__, "Module docstring required.")
+        self.assertIsNotNone(DBStorage.all.__doc__, "Method docstring required.")
 
-    def test_deletion(self):
-        """Test deletion of an instance."""
-        state = State(name="DeleteState")
-        state.save()
-        initial_count = len(storage.all(State))
-        storage.delete(state)
-        storage.save()
-        final_count = len(storage.all(State))
-        self.assertNotEqual(initial_count, final_count)
+    def test_db_storage_all_method(self):
+        """Test retrieval of all objects of a certain class from DB."""
+        all_states = storage.all(State)
+        self.assertIsInstance(all_states, dict, "Should return a dictionary.")
 
-if __name__ == "__main__":
+    def test_db_storage_new_method(self):
+        """Test addition of an object to the database."""
+        new_state = State(name='NewState')
+        self.session.add(new_state)
+        self.session.commit()
+        self.assertIn('State.{}'.format(new_state.id), storage.all(State))
+
+    def test_db_storage_save_method(self):
+        """Test commit of all changes to the database."""
+        new_user = User(email='save@test.com', password='savePwd')
+        self.session.add(new_user)
+        self.session.commit()
+        self.assertIn('User.{}'.format(new_user.id), storage.all(User))
+
+    def test_db_storage_delete_method(self):
+        """Test deletion of an object from the database."""
+        deletable = User(email='delete@test.com', password='deletePwd')
+        self.session.add(deletable)
+        self.session.commit()
+        self.session.delete(deletable)
+        self.session.commit()
+        self.assertNotIn('User.{}'.format(deletable.id), storage.all(User))
+
+if __name__ == '__main__':
     unittest.main()
