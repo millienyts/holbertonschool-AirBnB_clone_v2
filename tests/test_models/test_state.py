@@ -20,3 +20,8 @@ class test_state(test_basemodel):
         """ """
         new = self.value()
         self.assertEqual(type(new.name), str)
+        
+        @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
+class TestStateFileStorage(unittest.TestCase):
+    # Your State model test methods for FileStorage here
+    pass

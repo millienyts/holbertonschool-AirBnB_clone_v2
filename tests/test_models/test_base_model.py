@@ -10,6 +10,12 @@ from uuid import UUID
 import json
 import os
 
+# Assume this is test_base_model.py
+
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
+class TestBaseModelFileStorage(unittest.TestCase):
+    # Your BaseModel test methods for FileStorage here
+    pass
 
 class test_basemodel(unittest.TestCase):
     """ """
