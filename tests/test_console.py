@@ -49,20 +49,59 @@ class TestConsole(unittest.TestCase):
         except Exception:
             pass
             
-def test_create_command(self):
-    """Test 'create' command adds new instance to FileStorage."""
-    with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-        with patch('sys.stdin', new_callable=StringIO) as mock_stdin:
-            mock_stdin.write('create BaseModel\n')
-            mock_stdin.seek(0)
-            HBNBCommand().onecmd('create BaseModel')
-            output = mock_stdout.getvalue().strip()
-            self.assertTrue(len(output) > 0)
-            # Check if the created ID exists in storage
-            all_objs = models.storage.all()
-            obj_exists = any(['BaseModel.' + output in key for key in all_objs.keys()])
-            self.assertTrue(obj_exists)
+    def test_create_command(self):
+        """Test 'create' command adds new instance to FileStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            with patch('sys.stdin', new_callable=StringIO) as mock_stdin:
+                mock_stdin.write('create BaseModel\n')
+                mock_stdin.seek(0)
+                HBNBCommand().onecmd('create BaseModel')
+                output = mock_stdout.getvalue().strip()
+                self.assertTrue(len(output) > 0)
+                # Check if the created ID exists in storage
+                all_objs = models.storage.all()
+                obj_exists = any(['BaseModel.' + output in key for key in all_objs.keys()])
+                self.assertTrue(obj_exists)
+     def test_create_command_with_storage(self):
+            """Test 'create' command with both FileStorage and DBStorage."""
+            model_name = 'BaseModel'
+            with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+                self.console.onecmd(f'create {model_name}')
+                output = mock_stdout.getvalue().strip()
+                self.assertTrue(len(output) > 0)
+                # Verify that the object is in the appropriate storage
+                all_objs = models.storage.all(model_name)
+                self.assertIn(f'{model_name}.{output}', all_objs.keys())
 
+        def test_show_command_with_storage(self):
+            """Test 'show' command functionality for FileStorage and DBStorage."""
+            model_name = 'BaseModel'
+            instance = BaseModel()
+            instance.save()
+            with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+                self.console.onecmd(f'show {model_name} {instance.id}')
+                self.assertIn(instance.id, mock_stdout.getvalue().strip())
+
+        def test_destroy_command_with_storage(self):
+            """Test 'destroy' command removes instances for both storage types."""
+            model_name = 'BaseModel'
+            instance = BaseModel()
+            instance.save()
+            self.console.onecmd(f'destroy {model_name} {instance.id}')
+            # Verify instance is removed from storage
+            all_objs = models.storage.all(model_name)
+            self.assertNotIn(f'{model_name}.{instance.id}', all_objs.keys())
+
+        def test_update_command_with_storage(self):
+            """Test 'update' command updates instances for FileStorage and DBStorage."""
+            model_name = 'BaseModel'
+            instance = BaseModel()
+            new_name = "New Name"
+            self.console.onecmd(f'update {model_name} {instance.id} name "{new_name}"')
+            # Verify instance has been updated in storage
+            all_objs = models.storage.all(model_name)
+            updated_instance = all_objs[f'{model_name}.{instance.id}']
+            self.assertEqual(updated_instance.name, new_name)
 
     def test_pep8_conformance_console(self):
         """Test that console.py conforms to PEP8."""
