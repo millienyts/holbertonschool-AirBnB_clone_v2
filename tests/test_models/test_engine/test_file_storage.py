@@ -90,6 +90,34 @@ class FileStorageTestCase(unittest.TestCase):
             executed_without_issues = False
 
         self.assertTrue(executed_without_issues)
+      def test_filestorage_base_model_integration(self):
+            """
+            Tests if BaseModel instances can be correctly serialized and saved to file.json,
+            then deserialized back into objects.
+            """
+            self.sample_model.save()
+            self.file_storage_instance.reload()
+            all_objects = self.file_storage_instance.all()
+            self.assertIn(f"BaseModel.{self.sample_model.id}", all_objects)
 
-if __name__ == "__main__":
-    unittest.main()
+        def test_filestorage_user_integration(self):
+            """
+            Tests if User instances can be correctly serialized and saved to file.json,
+            then deserialized back into objects.
+            """
+            self.sample_user.save()
+            self.file_storage_instance.reload()
+            all_objects = self.file_storage_instance.all()
+            self.assertIn(f"User.{self.sample_user.id}", all_objects)
+
+        def test_save_updates_file(self):
+            """
+            Tests if calling save on FileStorage instance updates the file.json as expected.
+            """
+            initial_count = os.path.getsize("file.json") if os.path.exists("file.json") else 0
+            self.sample_model.save()
+            updated_count = os.path.getsize("file.json")
+            self.assertGreater(updated_count, initial_count, "File size should increase after saving.")
+
+    if __name__ == "__main__":
+        unittest.main()
