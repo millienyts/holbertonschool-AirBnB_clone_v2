@@ -6,11 +6,7 @@ from sqlalchemy.orm import relationship
 
 
 class City(BaseModel, Base):
-    """ Defines the City class """
-
     __tablename__ = 'cities'
-
-    name = Column(String(128), nullable=False)
     state_id = Column(String(60), ForeignKey('states.id'), nullable=False)
-
+    name = Column(String(128), nullable=False)
     state = relationship("State", back_populates="cities")
