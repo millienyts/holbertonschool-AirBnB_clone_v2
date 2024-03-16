@@ -123,42 +123,32 @@ class HBNBCommand(cmd.Cmd):
         """ Helper method to show the object of the given class with the provided ID """
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
-        
+            
     def do_create(self, arg):
-        """Create an object of any class with given parameters."""
-        if not arg:
+        args = arg.split()
+        if len(args) < 1:
             print("** class name missing **")
             return
 
-        args = arg.split()
         class_name = args[0]
-
         if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
-        # Initialize a new instance from the class name
         new_instance = HBNBCommand.classes[class_name]()
-
-        # Process additional arguments for attributes
         for attr_arg in args[1:]:
             key, _, value = attr_arg.partition('=')
-            # Transform value based on its type
+            # Handle string attributes, replace underscores with spaces and strip quotes
             if value.startswith('"') and value.endswith('"'):
-                # Strip double quotes and handle underscores and escape sequences
-                value = value.strip('"').replace('_', ' ').replace('\\"', '"')
-            elif '.' in value:  # Float value
-                try:
+                value = value[1:-1].replace('_', ' ')
+            # Convert numeric values
+            try:
+                if '.' in value:
                     value = float(value)
-                except ValueError:
-                    continue  # Skip invalid float values
-            else:  # Integer value
-                try:
+                else:
                     value = int(value)
-                except ValueError:
-                    continue  # Skip invalid int values
-
-            # Set the attribute to the new instance
+            except ValueError:
+                continue  # Skip attribute if conversion fails
             setattr(new_instance, key, value)
 
         new_instance.save()
@@ -180,18 +170,19 @@ class HBNBCommand(cmd.Cmd):
         print("Creates a class of any type")
         print("[Usage]: create <className>\n")
 
-      
     def do_show(self, arg):
         args = arg.split()
         if len(args) != 2:
             print("** class name missing **" if not args else "** instance id missing **")
             return
-        all_objs = models.storage.all(args[0])
+
+        objects = storage.all(HBNBCommand.classes[args[0]])
         obj_key = f"{args[0]}.{args[1]}"
-        if obj_key in all_objs:
-            print(all_objs[obj_key])
+        if obj_key in objects:
+            print(objects[obj_key])
         else:
             print("** no instance found **")
+
 
     def help_show(self):
         """ Help information for the show command """
