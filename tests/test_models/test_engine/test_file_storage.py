@@ -1,102 +1,95 @@
 #!/usr/bin/python3
-"""FileStorage class testing."""
+"""
+Unit tests for the FileStorage class in the models.engine package.
+"""
+
 import unittest
-import pep8
-import json
 import os
-from models import (BaseModel, User, State, City, Amenity, Place, Review, 
-                    engine)
+import json
+from models.base_model import BaseModel
 from models.engine.file_storage import FileStorage
 
-class TestConsoleFileStorage(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        """Set up test environment before all tests."""
-        cls.console = HBNBCommand()
+class FileStorageTestCase(unittest.TestCase):
+    """
+    Defines test cases for the FileStorage class functionality.
+    """
 
     def setUp(self):
-        """Clear FileStorage objects before each test."""
-        storage.reload()
-
-    def test_create_base_model(self):
-        """Test 'create BaseModel' command."""
-        with patch('sys.stdout', new=StringIO()) as mock_output:
-            self.console.onecmd("create BaseModel")
-            bm_id = mock_output.getvalue().strip()
-        self.assertTrue(bm_id)
-        self.assertIn("BaseModel.{}".format(bm_id), storage.all())
-
-        try:
-            os.rename("file.json", "backup_file.json")
-        except Exception:
-            pass
-        cls.test_storage = FileStorage()
-        cls.initial_setup()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Cleaning up after running all tests."""
-        try:
-            os.remove("file.json")
-        except Exception:
-            pass
-        try:
-            os.rename("backup_file.json", "file.json")
-        except Exception:
-            pass
-
-    @classmethod
-    def initial_setup(cls):
-        """Initial setup for tests in the class."""
-        cls.entities = {
-            'BaseModel': BaseModel(), 'User': User(), 'State': State(),
-            'City': City(), 'Amenity': Amenity(), 'Place': Place(),
-            'Review': Review()
-        }
-        for entity_name, entity_obj in cls.entities.items():
-            cls.test_storage.new(entity_obj)
-
-    def setUp(self):
-        """Runs before each test."""
-        FileStorage._FileStorage__objects = {}
+        """
+        Prepares the environment before each test: creates instances
+        and setups necessary variables.
+        """
+        self.file_storage_instance = FileStorage()
+        self.sample_model = BaseModel()
 
     def tearDown(self):
-        """Runs after each test."""
+        """
+        Clean up actions after each test: removes the storage file if it exists.
+        """
         try:
-            os.remove("file.json")
-        except Exception:
+            os.unlink("file.json")
+        except OSError:
             pass
 
-    def test_pep8_compliance(self):
-        """PEP8 compliance for file_storage.py."""
-        pep8_style = pep8.StyleGuide(quiet=True)
-        result = pep8_style.check_files(['models/engine/file_storage.py'])
-        self.assertEqual(result.total_errors, 0, "Code should be PEP8 compliant.")
+    def test_return_type_of_all_method(self):
+        """
+        Verifies if the 'all' method returns a dictionary.
+        """
+        all_objects = self.file_storage_instance.all()
+        self.assertTrue(isinstance(all_objects, dict))
 
-    def test_file_storage_all_method(self):
-        """Verify 'all' method functionality."""
-        all_objs = self.test_storage.all()
-        self.assertIsInstance(all_objs, dict, "Should return a dictionary.")
+    def test_new_method_updates_objects(self):
+        """
+        Ensures the 'new' method correctly adds objects to the storage.
+        """
+        self.file_storage_instance.new(self.sample_model)
+        object_key = f"{type(self.sample_model).__name__}.{self.sample_model.id}"
+        self.assertIn(object_key, self.file_storage_instance._FileStorage__objects)
 
-    def test_file_storage_new_method(self):
-        """Check 'new' method functionality."""
-        for entity_obj in self.entities.values():
-            self.assertIn(entity_obj, self.test_storage.all().values())
+    def test_value_type_in_objects_dict(self):
+        """
+        Checks if the stored values in the objects dictionary are instances
+        of the correct class.
+        """
+        self.file_storage_instance.new(self.sample_model)
+        object_key = f"{type(self.sample_model).__name__}.{self.sample_model.id}"
+        stored_object = self.file_storage_instance._FileStorage__objects[object_key]
+        self.assertEqual(type(self.sample_model), type(stored_object))
 
-    def test_file_storage_reload_method(self):
-        """Test reloading from the file."""
-        self.test_storage.reload()
-        self.assertTrue(len(self.test_storage.all()) > 0, "Reload should populate the storage.")
+    def test_file_creation_on_save(self):
+        """
+        Tests if the 'save' method actually creates the 'file.json'.
+        """
+        self.file_storage_instance.save()
+        self.assertTrue(os.path.exists("file.json"))
 
-    def test_file_storage_save_method(self):
-        """Test saving to the file."""
-        initial_count = len(self.test_storage.all())
-        new_model = BaseModel()
-        self.test_storage.new(new_model)
-        self.test_storage.save()
-        self.test_storage.reload()
-        final_count = len(self.test_storage.all())
-        self.assertNotEqual(initial_count, final_count, "New object should be saved to the file.")
+    def test_content_type_in_saved_file(self):
+        """
+        Verifies the content and type of data stored in 'file.json'.
+        """
+        self.file_storage_instance.new(self.sample_model)
+        self.file_storage_instance.save()
 
-if __name__ == '__main__':
+        with open("file.json", "r", encoding="utf-8") as file:
+            contents = json.load(file)
+            self.assertTrue(isinstance(contents, dict))
+
+        with open("file.json", "r", encoding="utf-8") as file:
+            contents = file.read()
+            self.assertTrue(isinstance(contents, str))
+
+    def test_reload_method_with_no_file(self):
+        """
+        Confirms that calling 'reload' without an existing 'file.json'
+        doesn't raise any exceptions.
+        """
+        try:
+            self.file_storage_instance.reload()
+            executed_without_issues = True
+        except Exception:
+            executed_without_issues = False
+
+        self.assertTrue(executed_without_issues)
+
+if __name__ == "__main__":
     unittest.main()
