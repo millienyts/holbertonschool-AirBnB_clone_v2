@@ -124,46 +124,44 @@ class HBNBCommand(cmd.Cmd):
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
         
-    def do_create(self, arg):
-        """Create an object of any class with given parameters."""
-        if not arg:
-            print("** class name missing **")
-            return
+   def do_create(self, arg):
+    args = arg.split()
+    if not args:
+        print("** class name missing **")
+        return
 
-        args = arg.split()
-        class_name = args[0]
+    class_name = args[0]
+    if class_name not in HBNBCommand.classes:
+        print("** class doesn't exist **")
+        return
 
-        if class_name not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
+    kwargs = {}
+    for param in args[1:]:
+        key, _, value = param.partition('=')
+        # Process value (handle strings, integers, floats)
+        if value[0] == '"' and value[-1] == '"':
+            value = value.strip('"').replace('_', ' ').replace('\"', '"')
+        elif '.' in value:
+            try:
+                value = float(value)
+            except ValueError:
+                continue
+        else:
+            try:
+                value = int(value)
+            except ValueError:
+                continue
+        kwargs[key] = value
 
-        # Initialize a new instance from the class name
-        new_instance = HBNBCommand.classes[class_name]()
+    # Create the new instance and set attributes
+    new_instance = HBNBCommand.classes[class_name]()
+    for key, value in kwargs.items():
+        setattr(new_instance, key, value)
+    new_instance.save()
+    print(new_instance.id)
 
-        # Process additional arguments for attributes
-        for attr_arg in args[1:]:
-            key, _, value = attr_arg.partition('=')
-            # Transform value based on its type
-            if value.startswith('"') and value.endswith('"'):
-                # Strip double quotes and handle underscores and escape sequences
-                value = value.strip('"').replace('_', ' ').replace('\\"', '"')
-            elif '.' in value:  # Float value
-                try:
-                    value = float(value)
-                except ValueError:
-                    continue  # Skip invalid float values
-            else:  # Integer value
-                try:
-                    value = int(value)
-                except ValueError:
-                    continue  # Skip invalid int values
-
-            # Set the attribute to the new instance
-            setattr(new_instance, key, value)
-
-        new_instance.save()
-        print(new_instance.id)
-
+    # Cache the new instance ID for use in subsequent commands
+    self.last_created[class_name] = new_instance.id
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
         if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
