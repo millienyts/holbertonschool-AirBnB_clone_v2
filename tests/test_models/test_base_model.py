@@ -1,86 +1,111 @@
 #!/usr/bin/python3
-""" """
+"""Module to test BaseModel functionality."""
 import unittest
 import os
 from models import storage
 from models.base_model import BaseModel
-import unittest
 import datetime
 from uuid import UUID
 import json
-import os
 
-
-@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
 class TestBaseModelFileStorage(unittest.TestCase):
-    """
-    Defines test cases for the BaseModel class for interactions with FileStorage.
-    """
-
+    """Class to test BaseModel with FileStorage."""
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
     def setUp(self):
-        """Prepare the test environment before each test."""
-        self.file_path = 'file.json'
-        if os.path.exists(self.file_path):
-            os.remove(self.file_path)
+        """Set up test environment before each test."""
+        self.model = BaseModel()
+        self.model.save()
 
     def tearDown(self):
-        """Clean up the test environment after each test."""
-        if os.path.exists(self.file_path):
-            os.remove(self.file_path)
+        """Clean up files after each test."""
+        try:
+            os.remove('file.json')
+        except Exception:
+            pass
 
-    def test_instance_creation(self):
-        """Test the creation of a BaseModel instance and its existence in FileStorage."""
-        instance = BaseModel()
-        instance.save()
-        self.assertIn(f'BaseModel.{instance.id}', storage.all().keys())
+class TestBaseModel(unittest.TestCase):
+    """Class for testing BaseModel methods."""
+
+    def setUp(self):
+        """Set up test methods."""
+        pass
+
+    def tearDown(self):
+        """Clean up after test."""
+        try:
+            os.remove('file.json')
+        except:
+            pass
 
     def test_default(self):
-        """Test the default initialization of a BaseModel instance."""
-        instance = BaseModel()
-        self.assertEqual(type(instance), BaseModel)
+        """ """
+        i = self.value()
+        self.assertEqual(type(i), self.value)
 
     def test_kwargs(self):
-        """Test initialization of a BaseModel instance with kwargs."""
-        instance = BaseModel()
-        instance_dict = instance.to_dict()
-        new_instance = BaseModel(**instance_dict)
-        self.assertFalse(new_instance is instance)
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        new = BaseModel(**copy)
+        self.assertFalse(new is i)
+
+    def test_kwargs_int(self):
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        copy.update({1: 2})
+        with self.assertRaises(TypeError):
+            new = BaseModel(**copy)
 
     def test_save(self):
-        """Test the save method of a BaseModel instance."""
-        instance = BaseModel()
-        instance.save()
-        key = f'BaseModel.{instance.id}'
-        with open(self.file_path, 'r') as f:
-            json_data = json.load(f)
-            self.assertIn(key, json_data.keys())
+        """ Testing save """
+        i = self.value()
+        i.save()
+        key = "BaseModel." + i.id
+        with open('file.json', 'r') as f:
+            j = json.load(f)
+            self.assertEqual(j[key], i.to_dict())
 
     def test_str(self):
-        """Test the string representation of a BaseModel instance."""
-        instance = BaseModel()
-        expected_str = f'[BaseModel] ({instance.id}) {instance.__dict__}'
-        self.assertEqual(str(instance), expected_str)
+        """ """
+        i = self.value()
+        self.assertEqual(str(i), '[BaseModel] ({}) {}'.format(i.id, i.__dict__))
 
     def test_todict(self):
-        """Test converting a BaseModel instance to a dictionary."""
-        instance = BaseModel()
-        instance_dict = instance.to_dict()
-        self.assertEqual(instance.to_dict(), instance_dict)
+        """ """
+        i = self.value()
+        n = i.to_dict()
+        self.assertEqual(i.to_dict(), n)
+
+    def test_kwargs_none(self):
+        """ """
+        n = {None: None}
+        with self.assertRaises(TypeError):
+            new = BaseModel(**n)
+
+    def test_kwargs_one(self):
+        """ """
+        n = {'Name': 'test'}
+        with self.assertRaises(KeyError):
+            new = BaseModel(**n)
 
     def test_id(self):
-        """Test the type of an instance's id."""
-        instance = BaseModel()
-        self.assertIsInstance(instance.id, str)
+        """ """
+        new = BaseModel()
+        self.assertEqual(type(new.id), str)
 
     def test_created_at(self):
-        """Test the type of an instance's created_at."""
-        instance = BaseModel()
-        self.assertIsInstance(instance.created_at, datetime.datetime)
+        """ """
+        new = BaseModel()
+        self.assertEqual(type(new.created_at), datetime.datetime)
 
     def test_updated_at(self):
-        """Test the type of an instance's updated_at."""
-        instance = BaseModel()
-        self.assertIsInstance(instance.updated_at, datetime.datetime)
+        """ """
+        new = BaseModel()
+        self.assertEqual(type(new.updated_at), datetime.datetime)
+        n = new.to_dict()
+        new = BaseModel(**n)
+        self.assertFalse(new.created_at == new.updated_at)
 
 if __name__ == "__main__":
     unittest.main()
