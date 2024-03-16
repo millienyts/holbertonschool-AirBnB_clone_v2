@@ -1,37 +1,34 @@
 #!/usr/bin/python3
-"""Module to test BaseModel functionality."""
+""" """
 import unittest
 import os
 from models import storage
 from models.base_model import BaseModel
+import unittest
 import datetime
 from uuid import UUID
 import json
+import os
 
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
 class TestBaseModelFileStorage(unittest.TestCase):
-    """Class to test BaseModel with FileStorage."""
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Skipping test for DB storage')
-    def setUp(self):
-        """Set up test environment before each test."""
-        self.model = BaseModel()
-        self.model.save()
+    # Your BaseModel test methods for FileStorage here
+    pass
 
-    def tearDown(self):
-        """Clean up files after each test."""
-        try:
-            os.remove('file.json')
-        except Exception:
-            pass
+class test_basemodel(unittest.TestCase):
+    """ """
 
-class TestBaseModel(unittest.TestCase):
-    """Class for testing BaseModel methods."""
+    def __init__(self, *args, **kwargs):
+        """ """
+        super().__init__(*args, **kwargs)
+        self.name = 'BaseModel'
+        self.value = BaseModel
 
     def setUp(self):
-        """Set up test methods."""
+        """ """
         pass
 
     def tearDown(self):
-        """Clean up after test."""
         try:
             os.remove('file.json')
         except:
@@ -61,7 +58,7 @@ class TestBaseModel(unittest.TestCase):
         """ Testing save """
         i = self.value()
         i.save()
-        key = "BaseModel." + i.id
+        key = self.name + "." + i.id
         with open('file.json', 'r') as f:
             j = json.load(f)
             self.assertEqual(j[key], i.to_dict())
@@ -69,7 +66,8 @@ class TestBaseModel(unittest.TestCase):
     def test_str(self):
         """ """
         i = self.value()
-        self.assertEqual(str(i), '[BaseModel] ({}) {}'.format(i.id, i.__dict__))
+        self.assertEqual(str(i), '[{}] ({}) {}'.format(self.name, i.id,
+                         i.__dict__))
 
     def test_todict(self):
         """ """
@@ -81,31 +79,28 @@ class TestBaseModel(unittest.TestCase):
         """ """
         n = {None: None}
         with self.assertRaises(TypeError):
-            new = BaseModel(**n)
+            new = self.value(**n)
 
     def test_kwargs_one(self):
         """ """
         n = {'Name': 'test'}
         with self.assertRaises(KeyError):
-            new = BaseModel(**n)
+            new = self.value(**n)
 
     def test_id(self):
         """ """
-        new = BaseModel()
+        new = self.value()
         self.assertEqual(type(new.id), str)
 
     def test_created_at(self):
         """ """
-        new = BaseModel()
+        new = self.value()
         self.assertEqual(type(new.created_at), datetime.datetime)
 
     def test_updated_at(self):
         """ """
-        new = BaseModel()
+        new = self.value()
         self.assertEqual(type(new.updated_at), datetime.datetime)
         n = new.to_dict()
         new = BaseModel(**n)
         self.assertFalse(new.created_at == new.updated_at)
-
-if __name__ == "__main__":
-    unittest.main()
