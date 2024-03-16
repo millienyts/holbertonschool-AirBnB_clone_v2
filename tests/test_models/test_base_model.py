@@ -158,6 +158,20 @@ class test_basemodel(unittest.TestCase):
         self.assertEqual(type(self.value), BaseModel)
     
     # Additional test methods...
+    def test_BaseModel_save_creates_file(self):
+        instance = BaseModel()
+        instance.save()
+        self.assertTrue(os.path.isfile('file.json'))
+
+    def test_BaseModel_save_serializes_data(self):
+        instance = BaseModel()
+        instance.name = "Test Name"
+        instance.save()
+        with open('file.json', 'r') as f:
+            data = json.load(f)
+        key = f"BaseModel.{instance.id}"
+        self.assertIn(key, data)
+        self.assertEqual(data[key]['name'], "Test Name")
 
 if __name__ == "__main__":
     unittest.main()
