@@ -148,16 +148,6 @@ class test_basemodel(unittest.TestCase):
         """
         pass
 
-    # Test methods from the previous script
-    
-    # Examples:
-    def test_default(self):
-        """
-        Test default object instantiation.
-        """
-        self.assertEqual(type(self.value), BaseModel)
-    
-    # Additional test methods...
     def test_BaseModel_save_creates_file(self):
         instance = BaseModel()
         instance.save()
@@ -172,6 +162,15 @@ class test_basemodel(unittest.TestCase):
         key = f"BaseModel.{instance.id}"
         self.assertIn(key, data)
         self.assertEqual(data[key]['name'], "Test Name")
+        
+    # Examples:
+    def test_default(self):
+        """
+        Test default object instantiation.
+        """
+        self.assertEqual(type(self.value), BaseModel)
+    
+    # Additional test methods...
 
 if __name__ == "__main__":
     unittest.main()
