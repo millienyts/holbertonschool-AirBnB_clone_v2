@@ -124,35 +124,35 @@ class HBNBCommand(cmd.Cmd):
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
             
-   def do_create(self, line):
-    args = line.split()
-    if not args:
-        print("** class name missing **")
-        return
-    if args[0] not in HBNBCommand.classes:
-        print("** class doesn't exist **")
-        return
-    if len(args) < 2:
-        print("** attribute name missing **")
-        return
-    kwargs = {arg.split('=')[0]: arg.split('=')[1] for arg in args[1:]}
-    if 'name' not in kwargs or not kwargs['name']:
-        print("Can't create {} without a name".format(args[0]))
-        return
-    if args[0] == 'City':
-        if 'state_id' not in kwargs or not kwargs['state_id']:
-            print("Can't create City without a state_id")
+    def do_create(self, arg):
+        args = arg.split()
+        if len(args) < 1:
+            print("** class name missing **")
             return
-        # Verify if the state exists
-        state = storage.all("State").get("State.{}".format(kwargs['state_id']))
-        if not state:
-            print("** no state found **")
+
+        class_name = args[0]
+        if class_name not in HBNBCommand.classes:
+            print("** class doesn't exist **")
             return
-    new_instance = HBNBCommand.classes[args[0]]()
-    for key, value in kwargs.items():
-        setattr(new_instance, key, value.replace('_', ' '))
-    new_instance.save()
-    print(new_instance.id)
+
+        new_instance = HBNBCommand.classes[class_name]()
+        for attr_arg in args[1:]:
+            key, _, value = attr_arg.partition('=')
+            # Handle string attributes, replace underscores with spaces and strip quotes
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1].replace('_', ' ')
+            # Convert numeric values
+            try:
+                if '.' in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+            except ValueError:
+                continue  # Skip attribute if conversion fails
+            setattr(new_instance, key, value)
+
+        new_instance.save()
+        print(new_instance.id)
 
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
@@ -170,18 +170,18 @@ class HBNBCommand(cmd.Cmd):
         print("Creates a class of any type")
         print("[Usage]: create <className>\n")
 
-    def do_show(self, arg):
-        args = arg.split()
-        if len(args) != 2:
-            print("** class name missing **" if not args else "** instance id missing **")
-            return
+def do_show(self, arg):
+    args = arg.split()
+    if len(args) != 2:
+        print("** class name missing **" if not args else "** instance id missing **")
+        return
 
-        objects = storage.all(HBNBCommand.classes[args[0]])
-        obj_key = f"{args[0]}.{args[1]}"
-        if obj_key in objects:
-            print(objects[obj_key])
-        else:
-            print("** no instance found **")
+    objects = storage.all(HBNBCommand.classes[args[0]])
+    obj_key = f"{args[0]}.{args[1]}"
+    if obj_key in objects:
+        print(objects[obj_key])
+    else:
+        print("** no instance found **")
 
 
     def help_show(self):
