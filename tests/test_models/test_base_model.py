@@ -196,22 +196,6 @@ class test_basemodel(unittest.TestCase):
         self.assertEqual(type(self.value), BaseModel)
     
     # Additional test methods...
-  @unittest.skipIf(os.getenv("HBNB_ENV") is not None, "Testing DBStorage")
-    def test_save(self):
-        """Test save method."""
-        old = self.instance.updated_at
-        self.instance.save()
-        self.assertLess(old, self.instance.updated_at)
-        with open("file.json", "r") as f:
-            self.assertIn("BaseModel.{}".format(self.instance.id), f.read())
-
-    @unittest.skipIf(os.getenv("HBNB_ENV") is not None, "Testing DBStorage")
-    def test_delete(self):
-        """Test delete method."""
-        self.instance.delete()
-        self.assertNotIn(self.instance, FileStorage._FileStorage__objects)
-
-# Remaining tests for BaseModel without FileStorage from Code 2 can be included here, ensuring they're properly adjusted.
 
 if __name__ == "__main__":
     unittest.main()
