@@ -32,6 +32,23 @@ class TestBaseModelFileStorage(unittest.TestCase):
         if os.path.exists('file.json'):
             os.remove('file.json')
 
+    def test_BaseModel_save_creates_file(self):
+        """Test to verify that saving a BaseModel instance creates the 'file.json'."""
+        instance = BaseModel()
+        instance.save()
+        self.assertTrue(os.path.isfile('file.json'))
+
+    def test_BaseModel_save_serializes_data(self):
+        """Test to ensure that a BaseModel instance is correctly serialized to 'file.json'."""
+        instance = BaseModel()
+        instance.name = "Test Name"
+        instance.save()
+        with open('file.json', 'r') as f:
+            data = json.load(f)
+        key = f"BaseModel.{instance.id}"
+        self.assertIn(key, data)
+        self.assertEqual(data[key]['name'], "Test Name")
+        
     def test_instance_save_to_file(self):
         """
         Test if the instance of `BaseModel` is correctly saved to 'file.json'.
