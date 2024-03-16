@@ -21,9 +21,9 @@ class TestBaseModelFileStorage(unittest.TestCase):
         """
         Set up the test case environment by ensuring no 'file.json' exists, to start with a clean slate.
         """
+        self.instance = BaseModel()
         if os.path.exists('file.json'):
             os.remove('file.json')
-        self.instance = BaseModel()
 
     def tearDown(self):
         """
@@ -32,23 +32,6 @@ class TestBaseModelFileStorage(unittest.TestCase):
         if os.path.exists('file.json'):
             os.remove('file.json')
 
-    def test_BaseModel_save_creates_file(self):
-        """Test to verify that saving a BaseModel instance creates the 'file.json'."""
-        instance = BaseModel()
-        instance.save()
-        self.assertTrue(os.path.isfile('file.json'))
-
-    def test_BaseModel_save_serializes_data(self):
-        """Test to ensure that a BaseModel instance is correctly serialized to 'file.json'."""
-        instance = BaseModel()
-        instance.name = "Test Name"
-        instance.save()
-        with open('file.json', 'r') as f:
-            data = json.load(f)
-        key = f"BaseModel.{instance.id}"
-        self.assertIn(key, data)
-        self.assertEqual(data[key]['name'], "Test Name")
-        
     def test_instance_save_to_file(self):
         """
         Test if the instance of `BaseModel` is correctly saved to 'file.json'.
@@ -58,12 +41,12 @@ class TestBaseModelFileStorage(unittest.TestCase):
 
     def test_instance_load_from_file(self):
         """
-        Test if the instance of `BaseModel` can be correctly loaded from 'file.json'.
+        Test if the instance of `BaseModel` can be correctly loaded from 'file.json' after `storage.reload()`.
         """
         self.instance.save()
         storage.reload()
         objects = storage.all()
-        key = f"{self.instance.__class__.__name__}.{self.instance.id}"
+        key = f"{type(self.instance).__name__}.{self.instance.id}"
         self.assertIn(key, objects)
 
     def test_file_contains_correct_data(self):
@@ -73,20 +56,43 @@ class TestBaseModelFileStorage(unittest.TestCase):
         self.instance.save()
         with open('file.json', 'r') as f:
             contents = json.load(f)
-            key = f"{self.instance.__class__.__name__}.{self.instance.id}"
+            key = f"{type(self.instance).__name__}.{self.instance.id}"
             self.assertIn(key, contents)
             self.assertDictEqual(self.instance.to_dict(), contents[key])
+
+# Removing duplicate import statements and adjusting the class name
+# to reflect its purpose more accurately.
+class TestBaseModel(unittest.TestCase):
+    """
+    Test cases for `BaseModel` functionalities unrelated to FileStorage.
+    """
+    
+    def setUp(self):
+        """
+        Prepare each test case environment by creating a new instance of BaseModel.
+        """
+        self.instance = BaseModel()
+
+    def tearDown(self):
+        """
+        Clean up after each test case.
+        """
+        pass
+
+    # Correcting the implementation to use self.instance instead of self.value.
     def test_default(self):
-        """ """
-        i = self.value()
-        self.assertEqual(type(i), self.value)
+        """
+        Test default object instantiation to ensure it's an instance of BaseModel.
+        """
+        self.assertIsInstance(self.instance, BaseModel)
 
     def test_kwargs(self):
-        """ """
-        i = self.value()
-        copy = i.to_dict()
-        new = BaseModel(**copy)
-        self.assertFalse(new is i)
+        """
+        Test initialization of a BaseModel instance with kwargs.
+        """
+        copy = self.instance.to_dict()
+        new_instance = BaseModel(**copy)
+        self.assertFalse(new_instance is self.instance)
 
     def test_kwargs_int(self):
         """ """
@@ -171,8 +177,6 @@ class test_basemodel(unittest.TestCase):
         Test default object instantiation.
         """
         self.assertEqual(type(self.value), BaseModel)
-    
-    # Additional test methods...
 
 if __name__ == "__main__":
     unittest.main()
