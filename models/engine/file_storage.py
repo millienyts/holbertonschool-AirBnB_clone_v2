@@ -9,51 +9,54 @@ from models.review import Review
 
 class FileStorage:
     """Manages storage of hbnb models in JSON format."""
+    
     __file_path = 'file.json'
     __objects = {}
 
     def all(self, cls=None):
-        """Returns a dictionary of models currently in storage.
-        If cls is provided, returns a dictionary of objects of that type.
+        """
+        Returns a dictionary of models currently in storage.
+        If cls is provided, returns a dictionary of objects of that class.
         """
         if cls is None:
-            return self.__objects
-        if isinstance(cls, str):
+            return FileStorage.__objects
+        elif isinstance(cls, str):
             cls = eval(cls)
-        return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
+        return {k: v for k, v in FileStorage.__objects.items() if isinstance(v, cls)}
 
     def new(self, obj):
         """Adds new object to storage dictionary."""
         if obj:
             key = f"{obj.__class__.__name__}.{obj.id}"
-            self.__objects[key] = obj
+            FileStorage.__objects[key] = obj
 
     def save(self):
         """Saves storage dictionary to file."""
-        obj_dict = {obj: self.__objects[obj].to_dict() for obj in self.__objects}
-        with open(self.__file_path, 'w', encoding='utf-8') as f:
+        obj_dict = {k: v.to_dict() for k, v in FileStorage.__objects.items()}
+        with open(FileStorage.__file_path, 'w', encoding='utf-8') as f:
             json.dump(obj_dict, f)
 
     def delete(self, obj=None):
-        """Delete obj from __objects if inside. Does nothing if obj is None."""
+        """
+        Delete obj from __objects if inside.
+        If obj is None, the method does nothing.
+        """
         if obj:
             key = f"{type(obj).__name__}.{obj.id}"
-            if key in self.__objects:
-                del self.__objects[key]
+            FileStorage.__objects.pop(key, None)
 
     def reload(self):
         """Loads storage dictionary from file if it exists."""
-        classes = {'BaseModel': BaseModel, 'User': User, 'Place': Place, 'State': State, 'City': City, 'Amenity': Amenity, 'Review': Review}
         try:
-            with open(self.__file_path, 'r', encoding='utf-8') as f:
+            with open(FileStorage.__file_path, 'r', encoding='utf-8') as f:
                 obj_dict = json.load(f)
-                for obj in obj_dict.values():
-                    cls_name = obj['__class__']
-                    if cls_name in classes:
-                        self.new(classes[cls_name](**obj))
+            for k, v in obj_dict.items():
+                cls_name = v['__class__']
+                cls = eval(cls_name)
+                FileStorage.__objects[k] = cls(**v)
         except FileNotFoundError:
             pass
 
     def close(self):
-        """Call the reload method for deserialization from JSON file to objects."""
+        """Call reload method for deserializing the JSON file to objects."""
         self.reload()
