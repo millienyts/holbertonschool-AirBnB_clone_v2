@@ -180,22 +180,16 @@ class HBNBCommand(cmd.Cmd):
         print("Creates a class of any type")
         print("[Usage]: create <className>\n")
 
-    def do_show(self, args):
-        """ Method to show an individual object """
-        args_list = args.split()
-        if not args:
-            print("** class name missing **")
+      
+    def do_show(self, arg):
+        args = arg.split()
+        if len(args) != 2:
+            print("** class name missing **" if not args else "** instance id missing **")
             return
-        elif args_list[0] not in self.classes:
-            print("** class doesn't exist **")
-            return
-        elif len(args_list) < 2:
-            print("** instance id missing **")
-            return
-        key = args_list[0] + "." + args_list[1]
-        objects = storage.all()
-        if key in objects:
-            print(objects[key])
+        all_objs = models.storage.all(args[0])
+        obj_key = f"{args[0]}.{args[1]}"
+        if obj_key in all_objs:
+            print(all_objs[obj_key])
         else:
             print("** no instance found **")
 
