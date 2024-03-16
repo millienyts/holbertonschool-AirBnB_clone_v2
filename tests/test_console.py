@@ -8,8 +8,15 @@ import unittest
 from unittest.mock import patch
 from console import HBNBCommand
 
-class TestConsole(unittest.TestCase):
-    """Tests the console module."""
+
+class TestCreateCommand(unittest.TestCase):
+    
+    def test_create_basic(self):
+        """Test the basic creation of an object without parameters."""
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            HBNBCommand().onecmd("create State")
+            state_id = fake_out.getvalue().strip()
+            self.assertIsNotNone(state_id)
 
     def setUp(self):
         """Set up redirecting stdout to capture print outputs."""

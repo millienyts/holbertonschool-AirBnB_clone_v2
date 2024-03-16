@@ -124,43 +124,39 @@ class HBNBCommand(cmd.Cmd):
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
 
-def do_create(self, arg):
-    """Create an object of any class with given parameters."""
-    if not arg:
-        print("** class name missing **")
-        return
-
-    arg_list = arg.split()
-    class_name = arg_list[0]
-
-    if class_name not in HBNBCommand.classes:
-        print("** class doesn't exist **")
-        return
-
-    kwargs = {}
-    for param in arg_list[1:]:
-        key, _, value = param.partition('=')
-        # Replace underscores with spaces for strings, and cast numeric values
-        if value.startswith('"') and value.endswith('"'):
-            value = value.strip('"').replace('_', ' ').replace('\"', '"')
-        elif '.' in value:
+    def do_create(self, arg):
+        """Creates an instance of BaseModel, saves it (to the JSON file) and prints the id.
+        Ex: $ create BaseModel
+        """
+        args = arg.split()
+        if len(args) == 0:
+            print("** class name missing **")
+            return
+        if args[0] not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+        
+        new_instance = HBNBCommand.classes[args[0]]()
+        
+        for param in args[1:]:
+            key, _, value = param.partition('=')
+            # Transform underscores to spaces for strings
+            if value[0] == '\"':
+                value = value.strip('\"').replace('_', ' ').replace('\"', '\\"')
+            # Convert string representation into correct type
             try:
-                value = float(value)
-            except ValueError:
-                continue
-        else:
-            try:
-                value = int(value)
-            except ValueError:
-                continue
-        kwargs[key] = value
+                value = eval(value)
+            except (SyntaxError, NameError):
+                continue  # If value is not a valid type, skip this attribute
 
-    try:
-        new_instance = HBNBCommand.classes[class_name](**kwargs)
+            if hasattr(new_instance, key):
+                setattr(new_instance, key, value)
+                
         new_instance.save()
         print(new_instance.id)
-    except Exception as e:
-        print(f"Error creating instance: {e}")
+
+    # Your existing HBNBCommand class methods follow...
+
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
         if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
