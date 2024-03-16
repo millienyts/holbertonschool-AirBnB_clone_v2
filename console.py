@@ -91,7 +91,7 @@ class HBNBCommand(cmd.Cmd):
         if not sys.__stdin__.isatty():
             print('(hbnb) ', end='')
         return stop
-
+        
     def do_quit(self, command):
         """ Method to exit the HBNB console"""
         exit()
@@ -124,29 +124,43 @@ class HBNBCommand(cmd.Cmd):
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
 
-    def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
+def do_create(self, arg):
+    """Create an object of any class with given parameters."""
+    if not arg:
+        print("** class name missing **")
+        return
 
-        arg_list = args.split()
-        class_name = arg_list[0]
+    arg_list = arg.split()
+    class_name = arg_list[0]
 
-        if class_name not in self.classes:
-            print("** class doesn't exist **")
-            return
+    if class_name not in HBNBCommand.classes:
+        print("** class doesn't exist **")
+        return
 
-        new_instance = self.classes[class_name]()
+    kwargs = {}
+    for param in arg_list[1:]:
+        key, _, value = param.partition('=')
+        # Replace underscores with spaces for strings, and cast numeric values
+        if value.startswith('"') and value.endswith('"'):
+            value = value.strip('"').replace('_', ' ').replace('\"', '"')
+        elif '.' in value:
+            try:
+                value = float(value)
+            except ValueError:
+                continue
+        else:
+            try:
+                value = int(value)
+            except ValueError:
+                continue
+        kwargs[key] = value
 
-        for pair in arg_list[1:]:
-            key, value = pair.split('=')
-            if key in self.types:
-                value = self.types[key](value.replace('_', ' '))
-            setattr(new_instance, key, value)
-
+    try:
+        new_instance = HBNBCommand.classes[class_name](**kwargs)
         new_instance.save()
         print(new_instance.id)
+    except Exception as e:
+        print(f"Error creating instance: {e}")
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
         if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
