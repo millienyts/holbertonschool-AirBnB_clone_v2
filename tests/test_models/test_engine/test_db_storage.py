@@ -2,11 +2,18 @@
 """Unit tests for DBStorage."""
 import unittest
 import pep8
-from models import (BaseModel, User, State, City, Amenity, Place, Review, 
-                    engine, storage)
+from models import storage
+from models.base_model import Base
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 from models.engine.db_storage import DBStorage
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
+from os import getenv
 
 class DBStorageTestCase(unittest.TestCase):
     """Tests for DBStorage functionality."""
@@ -24,11 +31,33 @@ class DBStorageTestCase(unittest.TestCase):
             Session = sessionmaker(bind=cls.engine)
             cls.session = Session()
             cls.setupTestData()
+            
+            # Additional setup from Code 1 for completeness
+            cls.state = State(name="California")
+            cls.session.add(cls.state)
+            cls.city = City(name="San_Jose", state_id=cls.state.id)
+            cls.session.add(cls.city)
+            cls.user = User(email="poppy@holberton.com", password="betty")
+            cls.session.add(cls.user)
+            cls.place = Place(city_id=cls.city.id, user_id=cls.user.id, name="School")
+            cls.session.add(cls.place)
+            cls.amenity = Amenity(name="Wifi")
+            cls.session.add(cls.amenity)
+            cls.review = Review(place_id=cls.place.id, user_id=cls.user.id, text="stellar")
+            cls.session.add(cls.review)
+            cls.session.commit()
 
     @classmethod
     def tearDownClass(cls):
         """Cleanup resources after all DBStorage tests."""
         if isinstance(storage, DBStorage):
+            # Tear down from Code 1
+            cls.session.delete(cls.state)
+            cls.session.delete(cls.city)
+            cls.session.delete(cls.user)
+            cls.session.delete(cls.amenity)
+            cls.session.commit()
+            
             cls.session.close()
             Base.metadata.drop_all(cls.engine)
 
@@ -47,10 +76,14 @@ class DBStorageTestCase(unittest.TestCase):
         result = pep8_style.check_files(['models/engine/db_storage.py'])
         self.assertEqual(result.total_errors, 0, "Code should be PEP8 compliant.")
 
-    def test_documentation(self):
+    def test_docstrings(self):
         """Test for existence of module and method documentation."""
         self.assertIsNotNone(DBStorage.__doc__, "Module docstring required.")
         self.assertIsNotNone(DBStorage.all.__doc__, "Method docstring required.")
+        self.assertIsNotNone(DBStorage.new.__doc__, "Method docstring required.")
+        self.assertIsNotNone(DBStorage.save.__doc__, "Method docstring required.")
+        self.assertIsNotNone(DBStorage.delete.__doc__, "Method docstring required.")
+        self.assertIsNotNone(DBStorage.reload.__doc__, "Method docstring required.")
 
     def test_db_storage_all_method(self):
         """Test retrieval of all objects of a certain class from DB."""
