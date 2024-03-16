@@ -34,12 +34,18 @@ class FileStorage:
         with open(self.__file_path, 'w', encoding='utf-8') as f:
             json.dump(obj_dict, f)
 
-    def delete(self, obj=None):
-        """Delete obj from __objects if inside. If obj is None, do nothing."""
-        if obj is None:
-            return
-        key = f"{type(obj).__name__}.{obj.id}"
-        self.__objects.pop(key, None)
+   def delete(self, obj=None):
+    """Delete obj from __objects if inside. If obj is None, do nothing."""
+    # Explicitly check if obj is None and return early if so
+    if obj is None:
+        return
+
+    # Construct the key using object's class name and id
+    key = f"{type(obj).__name__}.{obj.id}"
+
+    # Attempt to delete the object from __objects using the key
+    self.__objects.pop(key, None)
+
 
     def reload(self):
         """Loads storage dictionary from file if it exists."""
