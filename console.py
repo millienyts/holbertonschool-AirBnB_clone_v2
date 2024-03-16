@@ -123,42 +123,47 @@ class HBNBCommand(cmd.Cmd):
         """ Helper method to show the object of the given class with the provided ID """
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
-            
-   def do_create(self, arg):
-    args = shlex.split(arg)
-    if len(args) == 0:
-        print("** class name missing **")
-        return
-    class_name = args[0]
-    if class_name not in HBNBCommand.classes:
-        print("** class doesn't exist **")
-        return
-
-    kwargs = {}
-    for arg in args[1:]:
-        key, value = arg.split("=")
-        kwargs[key] = value
-
-    # State specific validation
-    if class_name == "State" and "name" not in kwargs:
-        print("Can't create State without a name")
-        return
-
-    # City specific validation
-    if class_name == "City":
-        if "state_id" not in kwargs or "name" not in kwargs:
-            print("Can't create City without a state_id and a name")
-            return
-        if not storage.get("State", kwargs["state_id"]):
-            print("Can't create City with non-existing state_id")
+        
+    def do_create(self, arg):
+        """Create an object of any class with given parameters."""
+        if not arg:
+            print("** class name missing **")
             return
 
-    # Create instance
-    instance = HBNBCommand.classes[class_name]()
-    for key, value in kwargs.items():
-        setattr(instance, key, value.replace('_', ' '))
-    instance.save()
-    print(instance.id)
+        args = arg.split()
+        class_name = args[0]
+
+        if class_name not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+
+        # Initialize a new instance from the class name
+        new_instance = HBNBCommand.classes[class_name]()
+
+        # Process additional arguments for attributes
+        for attr_arg in args[1:]:
+            key, _, value = attr_arg.partition('=')
+            # Transform value based on its type
+            if value.startswith('"') and value.endswith('"'):
+                # Strip double quotes and handle underscores and escape sequences
+                value = value.strip('"').replace('_', ' ').replace('\\"', '"')
+            elif '.' in value:  # Float value
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue  # Skip invalid float values
+            else:  # Integer value
+                try:
+                    value = int(value)
+                except ValueError:
+                    continue  # Skip invalid int values
+
+            # Set the attribute to the new instance
+            setattr(new_instance, key, value)
+
+        new_instance.save()
+        print(new_instance.id)
+
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
         if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
@@ -175,16 +180,16 @@ class HBNBCommand(cmd.Cmd):
         print("Creates a class of any type")
         print("[Usage]: create <className>\n")
 
+      
     def do_show(self, arg):
         args = arg.split()
         if len(args) != 2:
             print("** class name missing **" if not args else "** instance id missing **")
             return
-
-        objects = storage.all(HBNBCommand.classes[args[0]])
+        all_objs = models.storage.all(args[0])
         obj_key = f"{args[0]}.{args[1]}"
-        if obj_key in objects:
-            print(objects[obj_key])
+        if obj_key in all_objs:
+            print(all_objs[obj_key])
         else:
             print("** no instance found **")
 
@@ -217,18 +222,22 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the destroy command """
         print("Destroys an individual instance of a class")
         print("[Usage]: destroy <className> <objectId>\n")
-    
-    def do_all(self, arg):
-        obj_dict = models.storage.all()
-        if len(arg) > 0:
-            if arg not in HBNBCommand.classes:
+
+    def do_all(self, args):
+        """ Shows all objects, or all objects of a class"""
+        objects = storage.all()
+        print_list = []
+        if args:
+            if args not in self.classes:
                 print("** class doesn't exist **")
                 return
-            obj_dict = {k: v for k, v in obj_dict.items() if type(v).__name__ == arg}
-
-        for obj in obj_dict.values():
-            print(obj)
-
+            for key, obj in objects.items():
+                if args == key.split('.')[0]:
+                    print_list.append(str(obj))
+        else:
+            for obj in objects.values():
+                print_list.append(str(obj))
+        print(print_list)
 
     def help_all(self):
         """ Help information for the all command """
