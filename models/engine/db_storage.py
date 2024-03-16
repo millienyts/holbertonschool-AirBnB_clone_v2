@@ -24,27 +24,16 @@ class DBStorage:
         if getenv('HBNB_ENV') == 'test':
             Base.metadata.drop_all(self.__engine)
 
+
     def all(self, cls=None):
-        """ Queries on the current database session """
-
-        from models import State, City  # Import here to avoid circular import
-
-        obj_dict = {}
-
         if cls:
-            objects = self.__session.query(cls).all()
+            return {obj.id: obj for obj in self.__session.query(cls).all()}
         else:
-            objects = []
-            classes = [State, City]  # Add other classes here if needed
-
-            for c in classes:
-                objects.extend(self.__session.query(c).all())
-
-        for obj in objects:
-            key = "{}.{}".format(obj.__class__.__name__, obj.id)
-            obj_dict[key] = obj
-
-        return obj_dict
+            classes = [State, City]  # Extend this list with other classes
+            objs = {}
+            for cls in classes:
+                objs.update(self.all(cls))
+            return objs
 
     def new(self, obj):
         """ Adds the object to the current database session """
