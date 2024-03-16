@@ -123,39 +123,46 @@ class HBNBCommand(cmd.Cmd):
         """ Helper method to show the object of the given class with the provided ID """
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
-
+        
     def do_create(self, arg):
-        """Creates an instance of BaseModel, saves it (to the JSON file) and prints the id.
-        Ex: $ create BaseModel
-        """
-        args = arg.split()
-        if len(args) == 0:
+        """Create an object of any class with given parameters."""
+        if not arg:
             print("** class name missing **")
             return
-        if args[0] not in HBNBCommand.classes:
+
+        args = arg.split()
+        class_name = args[0]
+
+        if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        
-        new_instance = HBNBCommand.classes[args[0]]()
-        
-        for param in args[1:]:
-            key, _, value = param.partition('=')
-            # Transform underscores to spaces for strings
-            if value[0] == '\"':
-                value = value.strip('\"').replace('_', ' ').replace('\"', '\\"')
-            # Convert string representation into correct type
-            try:
-                value = eval(value)
-            except (SyntaxError, NameError):
-                continue  # If value is not a valid type, skip this attribute
 
-            if hasattr(new_instance, key):
-                setattr(new_instance, key, value)
-                
+        # Initialize a new instance from the class name
+        new_instance = HBNBCommand.classes[class_name]()
+
+        # Process additional arguments for attributes
+        for attr_arg in args[1:]:
+            key, _, value = attr_arg.partition('=')
+            # Transform value based on its type
+            if value.startswith('"') and value.endswith('"'):
+                # Strip double quotes and handle underscores and escape sequences
+                value = value.strip('"').replace('_', ' ').replace('\\"', '"')
+            elif '.' in value:  # Float value
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue  # Skip invalid float values
+            else:  # Integer value
+                try:
+                    value = int(value)
+                except ValueError:
+                    continue  # Skip invalid int values
+
+            # Set the attribute to the new instance
+            setattr(new_instance, key, value)
+
         new_instance.save()
         print(new_instance.id)
-
-    # Your existing HBNBCommand class methods follow...
 
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
