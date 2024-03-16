@@ -123,9 +123,9 @@ class HBNBCommand(cmd.Cmd):
         """ Helper method to show the object of the given class with the provided ID """
         command = f"show {class_name} {obj_id}"
         self.onecmd(command)
-        
+            
     def do_create(self, arg):
-        """Create an object of any class with given parameters."""
+        """Create an object of any class with given parameters, ensuring User has email and password."""
         if not arg:
             print("** class name missing **")
             return
@@ -141,6 +141,7 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[class_name]()
 
         # Process additional arguments for attributes
+        attributes = {}
         for attr_arg in args[1:]:
             key, _, value = attr_arg.partition('=')
             # Transform value based on its type
@@ -157,13 +158,21 @@ class HBNBCommand(cmd.Cmd):
                     value = int(value)
                 except ValueError:
                     continue  # Skip invalid int values
+            
+            # Gather attributes for potential validation
+            attributes[key] = value
 
-            # Set the attribute to the new instance
+        # Specific validation for User class
+        if class_name == "User" and ("email" not in attributes or "password" not in attributes):
+            print("** email or password missing **")
+            return
+
+        # Set attributes to the new instance after validation
+        for key, value in attributes.items():
             setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
-
 
         # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
         if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
