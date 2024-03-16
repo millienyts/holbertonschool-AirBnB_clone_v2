@@ -1,58 +1,60 @@
+#!/usr/bin/python3
+"""Module for handling persistent storage of application objects."""
 import json
 from models.base_model import BaseModel
 from models.user import User
-from models.place import Place
 from models.state import State
 from models.city import City
 from models.amenity import Amenity
+from models.place import Place
 from models.review import Review
 
-class FileStorage:
-    """Class for serializing instances to a JSON file and deserializing back."""
-
-    __file_path = "file.json"
-    __objects = {}
+class PersistentStorage:
+    """Handles JSON serialization and deserialization of app entities."""
+    storage_file = 'file.json'
+    object_registry = {}
 
     def all(self, cls=None):
-        """
-        Returns a dictionary of models currently in storage.
-        If cls is provided, returns only items of that class type.
-        """
-        if cls is not None:
-            filtered_dict = {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
-            return filtered_dict
-        return self.__objects
+        """Fetches all objects, optionally filtered by class type."""
+        if cls:
+            filtered_objects = {}
+            for key, obj in self.object_registry.items():
+                if isinstance(obj, cls) or cls.__name__ == obj.__class__.__name__:
+                    filtered_objects[key] = obj
+            return filtered_objects
+        return self.object_registry
 
     def new(self, obj):
-        """Adds new object to storage dictionary."""
-        key = obj.__class__.__name__ + "." + obj.id
-        self.__objects[key] = obj
+        """Registers a new object."""
+        obj_id = f"{obj.__class__.__name__}.{obj.id}"
+        self.object_registry[obj_id] = obj
 
     def save(self):
-        """Serializes __objects to the JSON file (path: __file_path)."""
-        obj_dict = {obj: self.__objects[obj].to_dict() for obj in self.__objects.keys()}
-        with open(self.__file_path, 'w') as f:
-            json.dump(obj_dict, f)
+        """Writes the registered objects to the disk."""
+        with open(self.storage_file, 'w', encoding='utf-8') as f:
+            json_objects = {k: v.to_dict() for k, v in self.object_registry.items()}
+            json.dump(json_objects, f)
 
     def reload(self):
-        """Deserializes the JSON file to __objects."""
+        """Populates the registry with objects stored on the disk."""
+        model_classes = {
+            'BaseModel': BaseModel, 'User': User, 'State': State,
+            'City': City, 'Amenity': Amenity, 'Place': Place, 'Review': Review
+        }
         try:
-            with open(self.__file_path, 'r') as f:
-                objs = json.load(f)
-            for obj in objs.values():
-                class_name = obj['__class__']
-                del obj['__class__']
-                self.new(eval(class_name)(**obj))
+            with open(self.storage_file, 'r', encoding='utf-8') as f:
+                objects = json.load(f)
+                for obj_id, obj_attrs in objects.items():
+                    self.object_registry[obj_id] = model_classes[obj_attrs['__class__']](**obj_attrs)
         except FileNotFoundError:
             pass
 
     def delete(self, obj=None):
-        """
-        Deletes obj from __objects if it’s inside.
-        If obj is equal to None, the method should not do anything.
-        """
-        if obj is not None:
-            obj_key = "{}.{}".format(type(obj).__name__, obj.id)
-            if obj_key in self.__objects:
-                del self.__objects[obj_key]
-                self.save()
+        """Removes an object from the registry."""
+        if obj:
+            obj_key = f"{obj.__class__.__name__}.{obj.id}"
+            self.object_registry.pop(obj_key, None)
+
+    def close(self):
+        """Alias for the reload() method for compatibility."""
+        self.reload()
