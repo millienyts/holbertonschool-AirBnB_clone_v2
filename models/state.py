@@ -1,30 +1,30 @@
 #!/usr/bin/python3
-""" State Module for HBNB project """
-from models.base_model import BaseModel
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String
-from os import getenv
+from sqlalchemy.orm import relationship
+from models.base_model import BaseModel, Base
 import models
-from models.city import City
-
-Base = declarative_base()
 
 class State(BaseModel, Base):
-    """ State class """
+    """
+    A representation of a state within the AirBnB clone platform.
+    
+    States are used to organize places into larger geographical areas, making it easier for users to find accommodations.
+
+    Attributes:
+        name (Column): The name of the state.
+    """
     __tablename__ = 'states'
-    
     name = Column(String(128), nullable=False)
-    
-    if getenv('HBNB_TYPE_STORAGE') == 'db':
-        cities = relationship('City', backref='state', cascade='all, delete-orphan')
-    else:
-        @property
-        def cities(self):
-            """Getter attribute in case of file storage"""
-            cities = models.storage.all(City)
-            cities_in_state = []
-            for city in cities.values():
-                if city.state_id == self.id:
-                    cities_in_state.append(city)
-            return cities_in_state
+    # Relationship with the City model, including cascading options to maintain integrity.
+    cities = relationship("City", cascade='all, delete, delete-orphan', backref="state")
+
+    @property
+    def cities(self):
+        """
+        A property that overrides the cities relationship in file storage mode.
+        
+        This custom property dynamically gathers all City instances from file storage that belong to the current State.
+        """
+        all_cities = models.storage.all(models.City)
+        # Filter and return cities that belong to this state.
+        return [city for city in all_cities.values() if city.state_id == self.id]
