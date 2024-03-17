@@ -54,16 +54,26 @@ class TestConsoleFunctionality(unittest.TestCase):
         sys.stdout = self.held
         storage.delete_all()
 
-    def test_create_with_parameters(self):
-        """Test `do_create` with initial parameters."""
-        with patch('sys.stdout', new=StringIO()) as fake_output:
-            HBNBCommand().onecmd("create BaseModel name=\"Test\" number=100")
-            obj_id = fake_output.getvalue().strip()
-        self.assertTrue(obj_id)
-        obj = storage.all().get("BaseModel." + obj_id)
-        self.assertIsNotNone(obj)
-        self.assertEqual(obj.name, "Test")
-        self.assertEqual(obj.number, 100)
+def test_do_create_with_parameters(self):
+    """Test creating an object via the console with initial parameters."""
+    with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
+        # Simulate 'create' command with initial parameters
+        command = 'create BaseModel name="Test" number=100'
+        HBNBCommand().onecmd(command)
+        output = mocked_stdout.getvalue().strip()
+        # Extracting object ID from the command output
+        obj_id = output.split('\n')[-1]
+        self.assertIsNotNone(obj_id)
+
+        # Constructing the key for storage validation
+        obj_key = f"BaseModel.{obj_id}"
+        self.assertIn(obj_key, storage.all())
+
+        # Fetching the object from FileStorage and validating attributes
+        obj = storage.all()[obj_key]
+        self.assertEqual(getattr(obj, "name", None), "Test")
+        self.assertEqual(getattr(obj, "number", None), 100)
+
 
 if __name__ == "__main__":
     unittest.main()
