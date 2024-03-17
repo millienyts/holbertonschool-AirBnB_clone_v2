@@ -112,38 +112,45 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-        """Create an object of any class with given parameters"""
-        arguments = args.split()
-        if not arguments:
-            print("** class name missing **")
-            return
-        if arguments[0] not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        
-        kwargs = {}
-        for arg in arguments[1:]:
-            key_value = arg.split('=')
-            if len(key_value) == 2:
-                key, value = key_value
-                if value[0] == '"' and value[-1] == '"':
-                    value = value[1:-1].replace('_', ' ').replace('\\"', '"')
-                elif '.' in value:
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        continue
+    def do_create(self, arg):
+        """
+        Usage: create <class_name>
+        """
+        try:
+            class_name = arg.split(" ")[0]
+            if len(class_name) == 0:
+                print("** class name missing **")
+                return
+            if class_name and class_name not in self.valid_classes:
+                print("** class doesn't exist **")
+                return
+
+            kwargs = {}
+            commands = arg.split(" ")
+            for i in range(1, len(commands)):
+                
+                key = commands[i].split("=")[0]
+                value = commands[i].split("=")[1]
+                #key, value = tuple(commands[i].split("="))
+                if value.startswith('"'):
+                    value = value.strip('"').replace("_", " ")
                 else:
                     try:
-                        value = int(value)
-                    except ValueError:
+                        value = eval(value)
+                    except (SyntaxError, NameError):
                         continue
                 kwargs[key] = value
-        
-        new_instance = HBNBCommand.classes[arguments[0]](**kwargs)
-        new_instance.save()
-        print(new_instance.id)
+
+            if kwargs == {}:
+                new_instance = eval(class_name)()
+            else:
+                new_instance = eval(class_name)(**kwargs)
+            storage.new(new_instance)
+            print(new_instance.id)
+            storage.save()
+        except ValueError:
+            print(ValueError)
+            return
 
 
     def help_create(self):
