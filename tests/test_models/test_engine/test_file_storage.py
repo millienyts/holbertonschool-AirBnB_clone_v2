@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 """ Module for testing file storage"""
-
 import unittest
 from models.base_model import BaseModel
 from models import storage
@@ -9,31 +8,9 @@ from unittest.mock import patch
 from io import StringIO
 from console import HBNBCommand
 
-
-class test_fileStorage(unittest.TestCase):
+class TestFileStorage(unittest.TestCase):
     """ Class to test the file storage method """
 
-    # Existing setup, teardown, and test methods
-
-    def test_do_create_with_parameters(self):
-        """Test creating an object via the console with initial parameters."""
-        # Use patch to mock stdout and stdin for simulating 'create' command
-        with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
-            # Simulate 'create' command with initial parameters
-            command = 'create BaseModel name="Test" number=100'
-            HBNBCommand().onecmd(command)
-            obj_id = mocked_stdout.getvalue().strip()
-            self.assertTrue(obj_id)
-            
-            # Check if the object is added to FileStorage
-            obj_key = f"BaseModel.{obj_id}"
-            self.assertIn(obj_key, storage.all())
-            
-            # Verify that the object's attributes are set correctly
-            obj = storage.all()[obj_key]
-            self.assertEqual(obj.name, "Test")
-            self.assertEqual(obj.number, 100)
-            
     def setUp(self):
         """ Set up test environment """
         del_list = []
@@ -46,7 +23,7 @@ class test_fileStorage(unittest.TestCase):
         """ Remove storage file at end of tests """
         try:
             os.remove('file.json')
-        except:
+        except FileNotFoundError:
             pass
 
     def test_obj_list_empty(self):
@@ -125,10 +102,27 @@ class test_fileStorage(unittest.TestCase):
         _id = new.to_dict()['id']
         for key in storage.all().keys():
             temp = key
-        self.assertEqual(temp, 'BaseModel' + '.' + _id)
+        self.assertEqual(temp, 'BaseModel.' + _id)
 
     def test_storage_var_created(self):
         """ FileStorage object storage created """
         from models.engine.file_storage import FileStorage
-        print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+
+    def test_do_create_with_parameters(self):
+        """Test creating an object via the console with initial parameters."""
+        with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
+            command = 'create BaseModel name="Test" number=100'
+            HBNBCommand().onecmd(command)
+            obj_id = mocked_stdout.getvalue().strip()
+            self.assertTrue(obj_id)
+            
+            obj_key = f"BaseModel.{obj_id}"
+            self.assertIn(obj_key, storage.all())
+            
+            obj = storage.all()[obj_key]
+            self.assertEqual(getattr(obj, "name", None), "Test")
+            self.assertEqual(getattr(obj, "number", None), 100)
+
+if __name__ == "__main__":
+    unittest.main()
