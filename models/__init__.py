@@ -1,4 +1,7 @@
-from os import getenv
+#!/usr/bin/python3
+"""This module instantiates an object of class FileStorage"""
+from models.engine.file_storage import FileStorage
 
-storage_t = getenv('HBNB_TYPE_STORAGE')
-# Based on storage_t, your storage initialization will go here
+
+storage = FileStorage()
+storage.reload()
