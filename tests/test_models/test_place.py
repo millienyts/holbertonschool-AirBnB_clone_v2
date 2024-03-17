@@ -4,8 +4,6 @@ Module for testing the Place class.
 """
 from tests.test_models.test_base_model import TestBaseModel
 from models.place import Place
-from models import storage
-
 import os
 
 class TestPlace(TestBaseModel):
