@@ -22,8 +22,8 @@ class User(BaseModel, Base):
     email = Column(String(128), nullable=False)
     password = Column(String(128), nullable=False)
     # Optional personal information for user profiles
-    first_name = Column(String(128))
-    last_name = Column(String(128))
+    first_name = Column(String(128), nullable=True)
+    last_name = Column(String(128), nullable=True)
     # Relational links to places listed and reviews made by the user
     places = relationship("Place", cascade="all, delete, delete-orphan", backref="user")
     reviews = relationship("Review", cascade="all, delete, delete-orphan", backref="user")
