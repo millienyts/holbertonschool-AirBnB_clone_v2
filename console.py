@@ -22,9 +22,57 @@ entity_classes = {
     "User": User
 }
 
-class CustomHBNBCommand(cmd.Cmd):
-    """ Custom HBNB Command Line Interface """
-    prompt = '(custom_hbnb) '
+class HBNBCommand(cmd.Cmd):
+    """HBNB console."""
+    prompt = '(hbnb) '
+
+    def do_create(self, arg):
+        """Creates a new instance of a class with given parameters."""
+        if not arg:
+            print("** class name missing **")
+            return
+
+        args = shlex.split(arg)
+        if args[0] not in models.classes:
+            print("** class doesn't exist **")
+            return
+
+        params = {}
+        for param in args[1:]:
+            key, value = param.split('=')
+            value = value.strip('"').replace('_', ' ')
+            if value.isdigit():
+                value = int(value)
+            elif '.' in value:
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue
+            params[key] = value
+
+        new_instance = models.classes[args[0]](**params)
+        new_instance.save()
+        print(new_instance.id)
+
+    def do_show(self, arg):
+        """Prints the string representation of an instance based on the class name and id."""
+        args = shlex.split(arg)
+        if len(args) == 0:
+            print("** class name missing **")
+            return
+        if args[0] not in models.classes:
+            print("** class doesn't exist **")
+            return
+        if len(args) == 1:
+            print("** instance id missing **")
+            return
+
+        key = args[0] + "." + args[1]
+        if key not in storage.all(args[0]):
+            print("** no instance found **")
+            return
+
+        print(storage.all(args[0])[key])
 
     def do_end(self, argument):
         """Exits the console with End command"""
