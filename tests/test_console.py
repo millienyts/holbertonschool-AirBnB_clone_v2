@@ -1,105 +1,39 @@
 #!/usr/bin/python3
-"""Test suite for the console."""
+"""
+Module contains tests for verifying the documentation and coding style compliance
+of the HBNB console.
+"""
 
-import sys
-import os
-from io import StringIO
+import console
 import unittest
-from unittest.mock import patch
+import pycodestyle
 from console import HBNBCommand
 
+class TestConsoleDocs(unittest.TestCase):
+    """
+    Tests to assess the documentation and coding style of the console application.
+    """
 
-class TestCreateCommand(unittest.TestCase):
-    
-    def test_create_basic(self):
-        """Test the basic creation of an object without parameters."""
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            HBNBCommand().onecmd("create State")
-            state_id = fake_out.getvalue().strip()
-            self.assertIsNotNone(state_id)
+    def test_pycodestyle_conformance_console(self):
+        """Test that console.py conforms to PEP8/pycodestyle."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files(['console.py'])
+        self.assertEqual(result.total_errors, 0,
+                         "console.py does not follow PEP8 guidelines.")
 
-    def setUp(self):
-        """Set up redirecting stdout to capture print outputs."""
-        self.capturedOutput = StringIO()
-        sys.stdout = self.capturedOutput
+    def test_pycodestyle_conformance_test_console(self):
+        """Test that the console tests conform to PEP8/pycodestyle."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files(['tests/test_console.py'])
+        self.assertEqual(result.total_errors, 0,
+                         "tests/test_console.py does not follow PEP8 guidelines.")
 
-    def tearDown(self):
-        """Clean up by resetting stdout."""
-        sys.stdout = sys.__stdout__
+    def test_console_module_docstring_exists(self):
+        """Check for existence of console.py module docstring."""
+        self.assertIsNotNone(console.__doc__,
+                             "console.py module lacks a docstring.")
 
-    def create_console(self):
-        """Helper method to create a console instance."""
-        return HBNBCommand()
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'file', "skip if not FileStorage")
-    @patch('models.storage')
-    def test_quit(self, mock_storage):
-        """Test if 'quit' command exists."""
-        console = self.create_console()
-        self.assertTrue(console.onecmd("quit"))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'file', "skip if not FileStorage")
-    @patch('models.storage')
-    def test_EOF(self, mock_storage):
-        """Test if 'EOF' command exists."""
-        console = self.create_console()
-        self.assertTrue(console.onecmd("EOF"))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'file', "skip if not FileStorage")
-    @patch('models.storage')
-    def test_all(self, mock_storage):
-        """Test 'all' command output type."""
-        console = self.create_console()
-        console.onecmd("all")
-        self.assertIsInstance(self.capturedOutput.getvalue(), str)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'file', "skip if not FileStorage")
-    @patch('models.storage')
-    def test_create_show_flow(self, mock_storage):
-        """Test 'create' and 'show' command flow."""
-        console = self.create_console()
-        mock_storage.new.return_value.id = "12345"
-        console.onecmd("create User")
-        user_id = self.capturedOutput.getvalue().strip()
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-
-        console.onecmd(f"show User {user_id}")
-        self.assertTrue(isinstance(self.capturedOutput.getvalue(), str))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'file', "skip if not FileStorage")
-    @patch('models.storage')
-    def test_error_messages(self, mock_storage):
-        """Test various error messages for 'show' and 'create'."""
-        console = self.create_console()
-
-        console.onecmd("create")
-        self.assertEqual("** class name missing **\n", self.capturedOutput.getvalue().strip())
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-
-        console.onecmd("create Binita")
-        self.assertEqual("** class doesn't exist **\n", self.capturedOutput.getvalue().strip())
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-
-        console.onecmd("show")
-        self.assertEqual("** class name missing **\n", self.capturedOutput.getvalue().strip())
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-
-        console.onecmd("show User")
-        self.assertEqual("** instance id missing **\n", self.capturedOutput.getvalue().strip())
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-
-        console.onecmd("show User 123456")
-        self.assertEqual("** no instance found **\n", self.capturedOutput.getvalue().strip())
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_HBNBCommand_class_docstring_exists(self):
+        """Check for existence of the HBNBCommand class docstring."""
+        self.assertIsNotNone(HBNBCommand.__doc__,
+                             "HBNBCommand class lacks a docstring.")

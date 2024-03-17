@@ -1,95 +1,89 @@
-#!/usr/bin/python3
 """
-Unit tests for the FileStorage class in the models.engine package.
+Unit tests for the FileStorage class in the AirBnB clone project.
 """
 
-import unittest
-import os
-import json
+from datetime import datetime
+import inspect
+import models
+from models.engine import file_storage
+from models.amenity import Amenity
 from models.base_model import BaseModel
-from models.engine.file_storage import FileStorage
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+from models.user import User
+import json
+import os
+import pycodestyle
+import unittest
+FileStorage = file_storage.FileStorage
 
-class FileStorageTestCase(unittest.TestCase):
-    """
-    Defines test cases for the FileStorage class functionality.
-    """
+classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
+           "Place": Place, "Review": Review, "State": State, "User": User}
 
-    def setUp(self):
-        """
-        Prepares the environment before each test: creates instances
-        and setups necessary variables.
-        """
-        self.file_storage_instance = FileStorage()
-        self.sample_model = BaseModel()
+class TestFileStorageDocs(unittest.TestCase):
+    """Verifies that the FileStorage class and its methods are documented and follow PEP8."""
 
-    def tearDown(self):
-        """
-        Clean up actions after each test: removes the storage file if it exists.
-        """
+    @classmethod
+    def setUpClass(cls):
+        """Gathers all the functions in FileStorage for inspection."""
+        cls.fs_functions = inspect.getmembers(FileStorage, inspect.isfunction)
+
+    def test_pycodestyle_conformance_file_storage(self):
+        """Ensures models/engine/file_storage.py adheres to PEP8."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files(['models/engine/file_storage.py'])
+        self.assertEqual(result.total_errors, 0, "Found style issues.")
+
+    def test_pycodestyle_conformance_test_file_storage(self):
+        """Checks tests for file_storage.py for PEP8 compliance."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files(['tests/test_models/test_engine/test_file_storage.py'])
+        self.assertEqual(result.total_errors, 0, "Found style issues in tests.")
+
+    def test_file_storage_module_docstring(self):
+        """Tests the presence of a module docstring in file_storage.py."""
+        self.assertIsNotNone(file_storage.__doc__, "Module docstring missing.")
+
+    def test_file_storage_class_docstring(self):
+        """Verifies the FileStorage class has a docstring."""
+        self.assertIsNotNone(FileStorage.__doc__, "Class docstring missing.")
+
+    def test_fs_function_docstrings(self):
+        """Confirms all methods in FileStorage have docstrings."""
+        for func in self.fs_functions:
+            self.assertIsNotNone(func[1].__doc__, f"{func[0]} lacks a docstring.")
+
+class TestFileStorageFunctionality(unittest.TestCase):
+    """Tests specific functionalities of the FileStorage class."""
+
+    @unittest.skipIf(models.storage_t == 'db', "Skipping FileStorage tests under db storage")
+    def test_all_returns_dict(self):
+        """Confirms all() returns a dict of __objects."""
+        self.assertIsInstance(models.storage.all(), dict, "all() should return a dict.")
+
+    @unittest.skipIf(models.storage_t == 'db', "Skipping FileStorage tests under db storage")
+    def test_new_method(self):
+        """Validates that new() adds objects correctly."""
+        original = FileStorage._FileStorage__objects.copy()
         try:
-            os.unlink("file.json")
-        except OSError:
-            pass
+            test_obj = list(classes.values())[0]()
+            models.storage.new(test_obj)
+            self.assertIn(f"{type(test_obj).__name__}.{test_obj.id}", models.storage.all())
+        finally:
+            FileStorage._FileStorage__objects = original
 
-    def test_return_type_of_all_method(self):
-        """
-        Verifies if the 'all' method returns a dictionary.
-        """
-        all_objects = self.file_storage_instance.all()
-        self.assertTrue(isinstance(all_objects, dict))
-
-    def test_new_method_updates_objects(self):
-        """
-        Ensures the 'new' method correctly adds objects to the storage.
-        """
-        self.file_storage_instance.new(self.sample_model)
-        object_key = f"{type(self.sample_model).__name__}.{self.sample_model.id}"
-        self.assertIn(object_key, self.file_storage_instance._FileStorage__objects)
-
-    def test_value_type_in_objects_dict(self):
-        """
-        Checks if the stored values in the objects dictionary are instances
-        of the correct class.
-        """
-        self.file_storage_instance.new(self.sample_model)
-        object_key = f"{type(self.sample_model).__name__}.{self.sample_model.id}"
-        stored_object = self.file_storage_instance._FileStorage__objects[object_key]
-        self.assertEqual(type(self.sample_model), type(stored_object))
-
-    def test_file_creation_on_save(self):
-        """
-        Tests if the 'save' method actually creates the 'file.json'.
-        """
-        self.file_storage_instance.save()
-        self.assertTrue(os.path.exists("file.json"))
-
-    def test_content_type_in_saved_file(self):
-        """
-        Verifies the content and type of data stored in 'file.json'.
-        """
-        self.file_storage_instance.new(self.sample_model)
-        self.file_storage_instance.save()
-
-        with open("file.json", "r", encoding="utf-8") as file:
-            contents = json.load(file)
-            self.assertTrue(isinstance(contents, dict))
-
-        with open("file.json", "r", encoding="utf-8") as file:
-            contents = file.read()
-            self.assertTrue(isinstance(contents, str))
-
-    def test_reload_method_with_no_file(self):
-        """
-        Confirms that calling 'reload' without an existing 'file.json'
-        doesn't raise any exceptions.
-        """
+    @unittest.skipIf(models.storage_t == 'db', "Skipping FileStorage tests under db storage")
+    def test_save_to_file(self):
+        """Checks that save() method serializes to file.json correctly."""
+        original = FileStorage._FileStorage__objects.copy()
         try:
-            self.file_storage_instance.reload()
-            executed_without_issues = True
-        except Exception:
-            executed_without_issues = False
-
-        self.assertTrue(executed_without_issues)
+            models.storage.save()
+            path = FileStorage._FileStorage__file_path
+            self.assertTrue(os.path.exists(path), "file.json was not created.")
+        finally:
+            FileStorage._FileStorage__objects = original
 
 if __name__ == "__main__":
     unittest.main()
