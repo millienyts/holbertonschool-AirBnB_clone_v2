@@ -17,19 +17,15 @@ class test_fileStorage(unittest.TestCase):
 
     def test_do_create_with_parameters(self):
         """Test creating an object via the console with initial parameters."""
-        # Use patch to mock stdout and stdin for simulating 'create' command
         with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
-            # Simulate 'create' command with initial parameters
             command = 'create BaseModel name="Test" number=100'
             HBNBCommand().onecmd(command)
             obj_id = mocked_stdout.getvalue().strip()
             self.assertTrue(obj_id)
             
-            # Check if the object is added to FileStorage
             obj_key = f"BaseModel.{obj_id}"
             self.assertIn(obj_key, storage.all())
             
-            # Verify that the object's attributes are set correctly
             obj = storage.all()[obj_key]
             self.assertEqual(obj.name, "Test")
             self.assertEqual(obj.number, 100)
