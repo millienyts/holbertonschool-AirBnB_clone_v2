@@ -62,15 +62,21 @@ class FileStorage:
             pass
 
     def delete(self, obj=None):
-        """Deletes obj from __objects if it’s inside.
-
+        """Deletes obj from __objects if it’s inside - if obj is equal to None, the method should not do anything.
+        
         Args:
             obj (BaseModel, optional): The object to delete.
         """
-        if obj is not None:
-            obj_key = "{}.{}".format(type(obj).__name__, obj.id)
-            if obj_key in self.__objects:
-                del self.__objects[obj_key]
+        if obj is None:
+            return
+
+        # Construct the key in the format ClassName.id
+        key = "{}.{}".format(type(obj).__name__, obj.id)
+        
+        # Check and delete the object if it exists in the __objects dictionary
+        if key in self.__objects:
+            del self.__objects[key]
+
 
     def close(self):
         """Call reload() method for deserializing the JSON file to objects."""
