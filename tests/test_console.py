@@ -8,6 +8,10 @@ import console
 import unittest
 import pycodestyle
 from console import HBNBCommand
+from unittest.mock import patch
+from io import StringIO
+from models import storage
+from models.base_model import BaseModel
 
 class TestConsoleDocs(unittest.TestCase):
     """
@@ -37,3 +41,29 @@ class TestConsoleDocs(unittest.TestCase):
         """Check for existence of the HBNBCommand class docstring."""
         self.assertIsNotNone(HBNBCommand.__doc__,
                              "HBNBCommand class lacks a docstring.")
+
+class TestConsoleFunctionality(unittest.TestCase):
+    """Tests for the functionality of the HBNB console."""
+
+    def setUp(self):
+        """Set up the test environment before each test."""
+        self.held, sys.stdout = sys.stdout, StringIO()
+
+    def tearDown(self):
+        """Clean up after each test."""
+        sys.stdout = self.held
+        storage.delete_all()
+
+    def test_create_with_parameters(self):
+        """Test `do_create` with initial parameters."""
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            HBNBCommand().onecmd("create BaseModel name=\"Test\" number=100")
+            obj_id = fake_output.getvalue().strip()
+        self.assertTrue(obj_id)
+        obj = storage.all().get("BaseModel." + obj_id)
+        self.assertIsNotNone(obj)
+        self.assertEqual(obj.name, "Test")
+        self.assertEqual(obj.number, 100)
+
+if __name__ == "__main__":
+    unittest.main()
