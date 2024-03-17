@@ -169,5 +169,39 @@ class TestHBNBCommand(unittest.TestCase):
         final_count = storage.count('State')
         self.assertEqual(final_count, initial_count + 1)
 
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage tests only')
+class TestDBStorageConsole(unittest.TestCase):
+    """Tests for DBStorage related console functionality."""
+
+    def setUp(self):
+        """Setup test case environment."""
+        self.consol = HBNBCommand()
+
+    def tearDown(self):
+        """Clean up after each test method."""
+        # Delete created objects from database to maintain a clean state
+        storage._DBStorage__session.rollback()
+        storage._DBStorage__session.close()
+
+    def test_db_create_state(self):
+        """Test creating a State via the console with DBStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            self.consol.onecmd('create State name="California"')
+            state_id = cout.getvalue().strip()
+            self.assertTrue(state_id)
+
+            # Query the database to ensure the State was created
+            state = storage._DBStorage__session.query(State).filter(State.id == state_id).one_or_none()
+            self.assertIsNotNone(state)
+            self.assertEqual(state.name, "California")
+
+    def test_db_create_user(self):
+        """Test creating a User via the console with DBStorage."""
+        # Assume User class and email/password fields exist and are valid
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            self.consol.onecmd('create User email="test@example.com" password="test"')
+            user_id = cout.getvalue().strip()
+            self.assertTrue(user_id)
+            
 if __name__ == "__main__":
     unittest.main()
