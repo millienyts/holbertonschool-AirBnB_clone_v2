@@ -14,6 +14,50 @@ from console import HBNBCommand
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
+import sys
+
+class TestFileStorageConsole(unittest.TestCase):
+    """Tests for FileStorage related console functionality."""
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    def test_fs_create_persistence(self):
+        """Test object creation and persistence with FileStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            # Create a new City via the console
+            HBNBCommand().onecmd('create City name="San Francisco"')
+            city_id = cout.getvalue().strip()
+            self.assertTrue(city_id)
+
+            # Save to ensure the object is written to file
+            HBNBCommand().onecmd('save')
+
+            # Clear FileStorage's memory to simulate a new session
+            storage.reload()
+
+            # Verify the object persists after reloading
+            self.assertIn(f'City.{city_id}', storage.all().keys())
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    def test_fs_save_reload_object(self):
+        """Test saving and reloading an object with FileStorage."""
+        obj_id = ''
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            # Create a new object via the console
+            HBNBCommand().onecmd('create BaseModel name="Test Reload"')
+            obj_id = cout.getvalue().strip()
+        
+        # Ensure the object ID was captured
+        self.assertTrue(obj_id)
+
+        # Invoke save and then reload
+        HBNBCommand().onecmd('save')
+        storage.reload()
+
+        # Confirm the object is still present after reload
+        key = f'BaseModel.{obj_id}'
+        all_objs = storage.all()
+        self.assertIn(key, all_objs)
+        self.assertEqual(all_objs[key].name, "Test Reload")
 
 
 class TestConsoleDocs(unittest.TestCase):
