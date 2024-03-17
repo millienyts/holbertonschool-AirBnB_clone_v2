@@ -13,6 +13,7 @@ from console import HBNBCommand
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
+from tests import clear_stream
 import sys
 
 class TestFileStorageConsole(unittest.TestCase):
@@ -36,28 +37,47 @@ class TestFileStorageConsole(unittest.TestCase):
             # Verify the object persists after reloading
             self.assertIn(f'City.{city_id}', storage.all().keys())
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
-    def test_fs_save_reload_object(self):
-        """Test saving and reloading an object with FileStorage."""
-        obj_id = ''
+            # Additional tests from Code 1
+            clear_stream(cout)
+            HBNBCommand().onecmd('create User name="James" age=17 height=5.9')
+            user_id = cout.getvalue().strip()
+            self.assertIn('User.{}'.format(user_id), storage.all().keys())
+            clear_stream(cout)
+            HBNBCommand().onecmd('show User {}'.format(user_id))
+            self.assertIn("'name': 'James'", cout.getvalue().strip())
+            self.assertIn("'age': 17", cout.getvalue().strip())
+            self.assertIn("'height': 5.9", cout.getvalue().strip())
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
+    def test_db_create_show_count(self):
+        """Tests the create, show, and count commands with the database storage."""
         with patch('sys.stdout', new_callable=StringIO) as cout:
-            # Create a new object via the console
-            HBNBCommand().onecmd('create BaseModel name="Test Reload"')
-            obj_id = cout.getvalue().strip()
-        
-        # Ensure the object ID was captured
-        self.assertTrue(obj_id)
+            HBNBCommand().onecmd('create User email="john25@gmail.com" password="123"')
+            user_id = cout.getvalue().strip()
+            dbc = MySQLdb.connect(host=os.getenv('HBNB_MYSQL_HOST'), port=3306, user=os.getenv('HBNB_MYSQL_USER'), passwd=os.getenv('HBNB_MYSQL_PWD'), db=os.getenv('HBNB_MYSQL_DB'))
+            cursor = dbc.cursor()
+            cursor.execute('SELECT * FROM users WHERE id="{}"'.format(user_id))
+            result = cursor.fetchone()
+            self.assertTrue(result is not None)
+            self.assertIn('john25@gmail.com', result)
+            self.assertIn('123', result)
+            cursor.close()
+            dbc.close()
 
-        # Invoke save and then reload
-        HBNBCommand().onecmd('save')
-        storage.reload()
+            # Testing show command
+            user = User(email="ui@example.com", password="pwd")
+            user_id = user.id
+            user.save()
+            clear_stream(cout)
+            HBNBCommand().onecmd('show User {}'.format(user_id))
+            self.assertIn('ui@example.com', cout.getvalue().strip())
+            self.assertIn('pwd', cout.getvalue().strip())
 
-        # Confirm the object is still present after reload
-        key = f'BaseModel.{obj_id}'
-        all_objs = storage.all()
-        self.assertIn(key, all_objs)
-        self.assertEqual(all_objs[key].name, "Test Reload")
-
+            # Testing count command
+            initial_count = storage.count('State')
+            HBNBCommand().onecmd('create State name="Lagos"')
+            final_count = storage.count('State')
+            self.assertEqual(final_count, initial_count + 1)
 
 class TestConsoleDocs(unittest.TestCase):
     """Tests to assess the documentation and coding style of the console application."""
@@ -81,6 +101,7 @@ class TestConsoleDocs(unittest.TestCase):
     def test_HBNBCommand_class_docstring_exists(self):
         """Check for existence of the HBNBCommand class docstring."""
         self.assertIsNotNone(HBNBCommand.__doc__, "HBNBCommand class lacks a docstring.")
+
 
 class TestHBNBCommand(unittest.TestCase):
     """Represents the test class for the HBNBCommand class."""
