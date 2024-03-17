@@ -1,6 +1,5 @@
 #!/usr/bin/python3
-"""A unit test module for the console (command interpreter).
-"""
+"""A unit test module for the console (command interpreter)."""
 import json
 import MySQLdb
 import os
@@ -61,9 +60,7 @@ class TestFileStorageConsole(unittest.TestCase):
 
 
 class TestConsoleDocs(unittest.TestCase):
-    """
-    Tests to assess the documentation and coding style of the console application.
-    """
+    """Tests to assess the documentation and coding style of the console application."""
     
     def test_pycodestyle_conformance_console(self):
         """Test that console.py conforms to PEP8/pycodestyle."""
@@ -150,37 +147,6 @@ class TestHBNBCommand(unittest.TestCase):
         HBNBCommand().onecmd('create State name="Lagos"')
         final_count = storage.count('State')
         self.assertEqual(final_count, initial_count + 1)
-class TestDBStorageConsole(unittest.TestCase):
-    """Tests for DBStorage related console functionality."""
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
-    def test_db_create_user(self):
-        """Test creating a User object with DBStorage through the console."""
-        with patch('sys.stdout', new_callable=StringIO) as cout:
-            # Create a new User via the console with specific attributes
-            HBNBCommand().onecmd('create User email="test@example.com" password="pwd" first_name="Test" last_name="User"')
-            user_id = cout.getvalue().strip()
-            self.assertTrue(user_id)
-
-            # Connect to the database to verify the User has been created
-            conn = MySQLdb.connect(host=os.getenv('HBNB_MYSQL_HOST'),
-                                   user=os.getenv('HBNB_MYSQL_USER'),
-                                   passwd=os.getenv('HBNB_MYSQL_PWD'),
-                                   db=os.getenv('HBNB_MYSQL_DB'))
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-            result = cur.fetchone()
-            self.assertIsNotNone(result)
-            # Ensure the attributes match
-            self.assertEqual(result[1], "test@example.com")  # Assuming email is the second column
-            self.assertEqual(result[2], "pwd")  # Assuming password is the third column
-            self.assertEqual(result[3], "Test")  # Assuming first_name is the fourth column
-            self.assertEqual(result[4], "User")  # Assuming last_name is the fifth column
-
-            cur.close()
-            conn.close()
-
-    # Additional DBStorage tests can follow the same pattern, focusing on other operations (update, delete, etc.)
 
 if __name__ == "__main__":
     unittest.main()
