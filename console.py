@@ -138,17 +138,16 @@ class HBNBCommand(cmd.Cmd):
 
             # Attempt to parse value as int, float, or fallback to string
             try:
-                # Evaluate numeric values or strings literally (without quotes)
+                # Evaluate values or strings (without quotes)
                 eval_value = eval(value, {"__builtins__": {}}, {})
-                if (isinstance(eval_value, (int, float)) or
-                        (value.startswith('"') and value.endswith('"'))):
+                if isinstance(eval_value, (int, float)) or (value.startswith('"') and value.endswith('"')):
                     value = eval_value
-            except:
-                # Handle as a string, replacin
+            except (SyntaxError, NameError, ValueError):
+                # Handle as a string, replacing underscores
                 value = value.strip('"').replace('_', ' ')
 
-            # Set attribute
-            setattr(new_instance, key, value)
+                # Set attribute
+                setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
