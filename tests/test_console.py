@@ -20,8 +20,7 @@ import sys
 class TestFileStorageConsole(unittest.TestCase):
     """Tests for FileStorage related console functionality."""
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 
-                     'FileStorage test')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
     def test_fs_create_persistence(self):
         """Test object creation and persistence with FileStorage."""
         with patch('sys.stdout', new_callable=StringIO) as cout:
@@ -32,8 +31,7 @@ class TestFileStorageConsole(unittest.TestCase):
             storage.reload()
             self.assertIn(f'City.{city_id}', storage.all().keys())
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 
-                     'FileStorage test')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
     def test_fs_save_reload_object(self):
         """Test saving and reloading an object with FileStorage."""
         with patch('sys.stdout', new_callable=StringIO) as cout:
@@ -47,9 +45,8 @@ class TestFileStorageConsole(unittest.TestCase):
         self.assertIn(key, all_objs)
         self.assertEqual(all_objs[key].name, "Test Reload")
 
+
 class TestConsoleDocs(unittest.TestCase):
-
-
     """Tests to assess the documentation and coding style of the console app."""
 
     def test_pycodestyle_conformance_console(self):
@@ -71,29 +68,27 @@ class TestConsoleDocs(unittest.TestCase):
         self.assertIsNotNone(console.__doc__, 
                              "console.py module lacks a docstring.")
 
-
     def test_HBNBCommand_class_docstring_exists(self):
         """Check for existence of the HBNBCommand class docstring."""
         self.assertIsNotNone(HBNBCommand.__doc__, 
                              "HBNBCommand class lacks a docstring.")
 
 
-
 class TestHBNBCommand(unittest.TestCase):
-"""Represents the test class for the HBNBCommand class."""
+    """Represents the test class for the HBNBCommand class."""
 
     @classmethod
     def setUpClass(cls):
-"""Set up resources before any tests are run."""
+        """Set up resources before any tests are run."""
         cls.consol = HBNBCommand()
-    
+
     @classmethod
     def tearDownClass(cls):
-"""Clean up resources after all tests have run."""
+        """Clean up resources after all tests have run."""
         del cls.consol
-    
+
     def setUp(self):
-    """Set up the test environment before each test."""
+        """Set up the test environment before each test."""
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def tearDown(self):
