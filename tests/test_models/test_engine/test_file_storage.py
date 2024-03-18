@@ -44,7 +44,26 @@ class test_fileStorage(unittest.TestCase):
             os.remove('file.json')
         except:
             pass
+            
+   @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "Skipping FileStorage tests")
+    def test_fs_create_user(self):
+        """Test creating a User via the console with FileStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            self.consol.onecmd("create User email='fs_test@example.com' password='fs_test'")
+            user_id = cout.getvalue().strip()
+            self.assertTrue(user_id)
 
+            # Verify the new User exists in FileStorage
+            user_key = f"User.{user_id}"
+            self.assertIn(user_key, storage.all().keys())
+
+            # Fetch the object and verify its attributes
+            user_obj = storage.all(User)[user_key]
+            self.assertEqual(user_obj.email, 'fs_test@example.com')
+
+            # Cleanup: remove the created object to avoid test side-effects
+            storage.delete(user_obj)
+            storage.save()
     def test_obj_list_empty(self):
         """ __objects is initially empty """
         self.assertEqual(len(storage.all()), 0)
