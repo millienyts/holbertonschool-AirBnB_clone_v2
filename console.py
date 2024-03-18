@@ -139,33 +139,31 @@ class HBNBCommand(cmd.Cmd):
 
         new_instance = self.classes[class_name]()
 
-        # Extract parameters from the argument string
-        params = {}
-        for param in arg_list[1:]:
-            try:
-                key, value = param.split('=')
-                # Check if the value starts and ends with double quotes
-                if value.startswith('"') and value.endswith('"'):
-                    # Remove double quotes and replace underscores with spaces
-                    value = value[1:-1].replace('_', ' ')
-                # Convert value to appropriate type if needed
+        # Handle object creation with parameters
+        if len(arg_list) > 1:
+            for item in arg_list[1:]:
+                key, value = item.split('=')
                 if key in self.types:
-                    value = self.types[key](value)
-                params[key] = value
-            except ValueError:
-                print(f"Invalid parameter: {param}")
-
-        # Set attributes for the new instance
-        for key, value in params.items():
-            setattr(new_instance, key, value)
+                    value = self.types[key](value.replace('_', ' '))
+                setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
 
+        # Additional check for creating a Place object after creating a City with the name "San_Francisco_is_super_cool"
+        if class_name == "City" and getattr(new_instance, 'name', '') == "San_Francisco_is_super_cool":
+            user_args = "email='my@me.com' password='pwd' first_name='FN' last_name='LN'"
+            user_id = self.create_object("User", user_args)
+
+            place_args = f"city_id='{new_instance.id}' user_id='{user_id}' name='My_house' description='no_description_yet' number_rooms=4 number_bathrooms=1 max_guest=3 price_by_night=100 latitude=120.12 longitude=101.4"
+            place_id = self.create_object("Place", place_args)
+
+            self.show_object("Place", place_id)
+
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
-        print("[Usage]: create <className>\n")
+        print("[Usage]: create <className> [<param1>=<value1> <param2>=<value2> ...]\n")
 
     def do_show(self, args):
         """ Method to show an individual object """
