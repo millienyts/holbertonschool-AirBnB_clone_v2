@@ -2,23 +2,23 @@
 """
 A unit test module for the console (command interpreter).
 """
+import sys
+from models.amenity import Amenity
+from models.review import Review
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.user import User
+from models.base_model import BaseModel
+from models import storage
+from console import HBNBCommand
 import MySQLdb
 import os
 import unittest
 from io import StringIO
 from unittest.mock import patch
 import pycodestyle
-
-from console import HBNBCommand
-from models import storage
-from models.base_model import BaseModel
-from models.user import User
-from models.city import City
-from models.state import State
-from models.place import Place
-from models.review import Review
-from models.amenity import Amenity
-import sys
+sys.path.append('/home/lol/holbertonschool-AirBnB_clone_v2')
 
 
 class TestFileStorageConsole(unittest.TestCase):
