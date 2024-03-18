@@ -72,7 +72,8 @@ class HBNBCommand(cmd.Cmd):
                 # if arguments exist beyond _id
                 pline = pline[2].strip()  # pline is now str
                 if pline:
-                    if pline[0] is '{' and pline[-1] is'}'\
+                # check for *args or **kwargs
+                    if pline[0]  is '{' and pline[-1] is'}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -144,7 +145,7 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[arguments[0]](**kwargs)
         new_instance.save()
         print(new_instance.id)
-        
+
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
