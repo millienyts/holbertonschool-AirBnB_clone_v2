@@ -88,10 +88,8 @@ class TestConsoleDocs(unittest.TestCase):
     self.assertIsNotNone(module.__doc__, "console.py module lacks a docstring.")
 
     def test_HBNBCommand_class_docstring_exists(self):
-        """
-        Check for existence of the HBNBCommand class docstring.
-        """
-        self.assertIsNotNone(HBNBCommand.__doc__,
+    """Check for existence of the HBNBCommand class docstring."""
+    self.assertIsNotNone(HBNBCommand.__doc__,
                              "HBNBCommand class lacks a docstring.")
 
 
