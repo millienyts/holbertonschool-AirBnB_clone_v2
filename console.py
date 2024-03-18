@@ -140,10 +140,11 @@ class HBNBCommand(cmd.Cmd):
             try:
                 # Evaluate numeric values or strings literally (without quotes)
                 eval_value = eval(value, {"__builtins__": {}}, {})
-                if isinstance(eval_value, (int, float)) or (value.startswith('"') and value.endswith('"')):
+                if (isinstance(eval_value, (int, float)) or
+                        (value.startswith('"') and value.endswith('"'))):
                     value = eval_value
             except:
-                # Handle as a string,
+                # Handle as a string, replacin
                 value = value.strip('"').replace('_', ' ')
 
             # Set attribute
