@@ -103,19 +103,7 @@ class TestHBNBCommand(unittest.TestCase):
     def tearDown(self):
         """Clean up after each test."""
         sys.stdout = self.held
-        
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-   def test_fs_create_user(self):
-        """Test creating a User via the console with FileStorage."""
-        with patch('sys.stdout', new_callable=StringIO) as cout:
-            HBNBCommand().onecmd("create User email='fs_test@example.com' password='fs_test'")
-            user_id = cout.getvalue().strip()
-            self.assertTrue(user_id)
-            # Verify the new User exists in FileStorage
-            user_key = f"User.{user_id}"
-            self.assertIn(user_key, storage.all().keys())
-            
-            # Further assertions and cleanup logic here.
+
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
     def test_fs_create(self):
