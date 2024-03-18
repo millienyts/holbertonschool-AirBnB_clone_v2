@@ -98,17 +98,6 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn(user_key, storage.all().keys())
             # Cleanup if necessary
             
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-def test_fs_update(self):
-    """Test updating an object via the console with FileStorage."""
-    with patch('sys.stdout', new_callable=StringIO) as cout:
-        HBNBCommand().onecmd("create User email='update_test@example.com'")
-        user_id = cout.getvalue().strip()
-        HBNBCommand().onecmd(f"update User {user_id} first_name 'Test'")
-        user = storage.all()["User." + user_id]
-        self.assertEqual(user.first_name, "Test")
-
-            
               @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
     def test_fs_destroy(self):
         """Test object destruction with FileStorage."""
@@ -126,6 +115,17 @@ def test_fs_update(self):
 
             # Ensure the User object is no longer present
             self.assertNotIn(f'User.{user_id}', storage.all().keys())
+            
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
+def test_fs_update(self):
+    """Test updating an object via the console with FileStorage."""
+    with patch('sys.stdout', new_callable=StringIO) as cout:
+        HBNBCommand().onecmd("create User email='update_test@example.com'")
+        user_id = cout.getvalue().strip()
+        HBNBCommand().onecmd(f"update User {user_id} first_name 'Test'")
+        user = storage.all()["User." + user_id]
+        self.assertEqual(user.first_name, "Test")
+
 
     """Represents the test class for the HBNBCommand class."""
     
