@@ -57,6 +57,21 @@ class TestFileStorageConsole(unittest.TestCase):
                          "Test Reload")
 
 
+class TestDBStorageConsole(unittest.TestCase):
+    """Tests for DBStorage related console functionality."""
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', "DBStorage tests only")
+    def test_db_create(self):
+        """Tests create command with database storage, checks user creation."""
+        cmd = 'create User email="john25@gmail.com" password="123"'
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            HBNBCommand().onecmd(cmd)
+            user_id = cout.getvalue().strip()
+            self.verify_user_creation_in_db(user_id)
+
+    # Include other DBStorage test methods here...
+
+
 class TestConsoleDocs(unittest.TestCase):
     """
     Tests to assess the documentation and coding style of the console app.
