@@ -1,13 +1,19 @@
--- MySQL setup for development environment
+-- Creates a MySQL server with:
+--   Database hbnb_test_db.
+--   User hbnb_test with password hbnb_test_pwd in localhost.
+--   Grants all privileges for hbnb_test on hbnb_test_db.
+--   Grants SELECT privilege for hbnb_test on performance_schema.
 
--- Create database if not exists
-CREATE DATABASE IF NOT EXISTS hbnb_dev_db;
-
--- Create user if not exists
-CREATE USER IF NOT EXISTS 'hbnb_dev'@'localhost' IDENTIFIED BY 'hbnb_dev_pwd';
-
--- Grant privileges to the user on the database
-GRANT ALL PRIVILEGES ON hbnb_dev_db.* TO 'hbnb_dev'@'localhost';
-
--- Grant SELECT privilege on performance_schema database
-GRANT SELECT ON performance_schema.* TO 'hbnb_dev'@'localhost';
+CREATE DATABASE IF NOT EXISTS hbnb_test_db;
+CREATE USER
+    IF NOT EXISTS 'hbnb_test'@'localhost'
+    IDENTIFIED BY 'hbnb_test_pwd';
+GRANT ALL PRIVILEGES
+   ON `hbnb_test_db`.*
+   TO 'hbnb_test'@'localhost'
+   IDENTIFIED BY 'hbnb_test_pwd';
+GRANT SELECT
+   ON `performance_schema`.*
+   TO 'hbnb_test'@'localhost'
+   IDENTIFIED BY 'hbnb_test_pwd';
+FLUSH PRIVILEGES;
