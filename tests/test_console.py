@@ -48,6 +48,8 @@ class TestFileStorageConsole(unittest.TestCase):
         self.assertEqual(all_objs[key].name, "Test Reload")
 
 class TestConsoleDocs(unittest.TestCase):
+
+
     """Tests to assess the documentation and coding style of the console app."""
 
     def test_pycodestyle_conformance_console(self):
@@ -76,16 +78,16 @@ class TestConsoleDocs(unittest.TestCase):
                              "HBNBCommand class lacks a docstring.")
 
 class TestHBNBCommand(unittest.TestCase):
-    """Represents the test class for the HBNBCommand class."""
+"""Represents the test class for the HBNBCommand class."""
     
     @classmethod
     def setUpClass(cls):
-        """Set up resources before any tests are run."""
+"""Set up resources before any tests are run."""
         cls.consol = HBNBCommand()
     
     @classmethod
     def tearDownClass(cls):
-        """Clean up resources after all tests have run."""
+"""Clean up resources after all tests have run."""
         del cls.consol
     
     def setUp(self):
