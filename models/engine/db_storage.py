@@ -10,6 +10,7 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 
+
 class DBStorage:
     __engine = None
     __session = None
@@ -34,7 +35,8 @@ class DBStorage:
             for cls in classes:
                 objs.extend(self.__session.query(cls).all())
 
-        return {'{}.{}'.format(type(obj).__name__, obj.id): obj for obj in objs}
+        return {'{}.{}'.format(type(obj).__name__, obj.id): obj
+                for obj in objs}
 
     def new(self, obj):
         self.__session.add(obj)
