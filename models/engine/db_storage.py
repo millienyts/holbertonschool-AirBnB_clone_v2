@@ -10,7 +10,6 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 
-
 class DBStorage:
     __engine = None
     __session = None
@@ -35,8 +34,7 @@ class DBStorage:
             for cls in classes:
                 objs.extend(self.__session.query(cls).all())
 
-        return {'{}.{}'.format(type(obj).__name__, obj.id): obj
-                for obj in objs}
+        return {'{}.{}'.format(type(obj).__name__, obj.id): obj for obj in objs}
 
     def new(self, obj):
         self.__session.add(obj)
@@ -50,9 +48,7 @@ class DBStorage:
 
     def reload(self):
         Base.metadata.create_all(self.__engine)
-        # Adjusted for line length compliance
-        session_factory = sessionmaker(bind=self.__engine, 
-                                       expire_on_commit=False)
+        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
 
