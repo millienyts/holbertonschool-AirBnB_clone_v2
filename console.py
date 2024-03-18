@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+import shlex
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -108,58 +109,48 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
+        """Create an object of any class with optional attributes."""
+        # Split arguments by spaces, considering quoted strings
+        args_list = shlex.split(args)
+
+        if len(args_list) == 0:
             print("** class name missing **")
             return
-            # check if args contain parameters
-        p_dict = {}
-        if ('=' in args and ' ' in args):
-            # let's separate args into class & parameters
-            args = args.partition(' ')
-            class_name = args[0]
-            params = args[2].split(' ')
-            # convert params into a dictionary
 
-            for item in params:
-                param_key, param_value = tuple(item.split('='))
-                if param_value[0] == '"':
-                    param_value = param_value.strip('"').replace("_", " ")
-                    # print(type(param_value))
-                else:
-                    try:
-                        param_value = eval(param_value)
-                        # print(type(param_value))
-                    except (SyntaxError, NameError):
-                        continue
-
-                p_dict[param_key] = param_value
-            # print(p_dict)
-
-        else:
-            class_name = args
+        class_name = args_list[0]
 
         if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
+        # Create an instance of the specified class
         new_instance = HBNBCommand.classes[class_name]()
-        storage.save()
+
+        # Handling additional attributes if provided in the command
+        for attr in args_list[1:]:
+            # Check if attribute assignment is in the correct format 'key=value'
+            if '=' not in attr:
+                print(
+                    f"** error: attribute '{attr}' is not in the format key=value **")
+                continue
+
+            key, value = attr.split('=', 1)
+
+            # Attempt to parse value as int, float, or fallback to string
+            try:
+                # Evaluate numeric values or strings literally (without quotes)
+                eval_value = eval(value, {"__builtins__": {}}, {})
+                if isinstance(eval_value, (int, float)) or (value.startswith('"') and value.endswith('"')):
+                    value = eval_value
+            except:
+                # Handle as a string, replacing underscores with spaces and stripping quotes
+                value = value.strip('"').replace('_', ' ')
+
+            # Set attribute
+            setattr(new_instance, key, value)
+
+        new_instance.save()
         print(new_instance.id)
-
-        if len(p_dict) > 0:
-            args = f"{class_name} {new_instance.id} {p_dict}"
-            # call the update method
-            self.do_update(args)
-            # print(args)
-        storage.save()
-
-    # if len(p_dict) > 0:
-    #     args = f"{class_name} {new_instance.id} {p_dict}"
-    #     # call the update method
-    #     self.do_update(args)
-    #     # print(args)
-    # storage.save()
 
     def help_create(self):
         """ Help information for the create method """
