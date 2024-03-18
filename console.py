@@ -127,25 +127,26 @@ class HBNBCommand(cmd.Cmd):
             key_value = arg.split('=')
             if len(key_value) == 2:
                 key, value = key_value
+                # Handle string values
                 if value[0] == '"' and value[-1] == '"':
+                    # Replace underscores with spaces and remove outer quotes
+                    # Escape double quotes inside the string
                     value = value[1:-1].replace('_', ' ').replace('\\"', '"')
-                elif '.' in value:
-                    try:
+                # Handle float and integer values
+                try:
+                    if '.' in value:
                         value = float(value)
-                    except ValueError:
-                        continue
-                else:
-                    try:
+                    else:
                         value = int(value)
-                    except ValueError:
-                        continue
+                except ValueError:
+                    continue  # Skip if conversion fails
                 kwargs[key] = value
         
+        # Create and save the new instance with kwargs if available
         new_instance = HBNBCommand.classes[arguments[0]](**kwargs)
         new_instance.save()
         print(new_instance.id)
-
-
+        
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
