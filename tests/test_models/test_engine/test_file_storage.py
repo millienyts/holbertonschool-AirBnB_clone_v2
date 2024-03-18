@@ -4,6 +4,8 @@
 import unittest
 from models.base_model import BaseModel
 from models import storage
+from models.state import State  
+from models.city import City    
 import os
 from unittest.mock import patch
 from io import StringIO
@@ -147,6 +149,49 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+        
+          def test_all_with_no_class(self):
+        """Correct output for def all(self) with different objects."""
+        # Assuming setUp cleans the storage
+        state = State()
+        city = City()
+        state.save()
+        city.save()
+        self.assertEqual(len(storage.all()), 2)
+
+    def test_all_with_class(self):
+        """Correct output for def all(self, cls) with objects of different types."""
+        # Assuming setUp cleans the storage
+        state1 = State()
+        state2 = State()
+        city = City()
+        state1.save()
+        state2.save()
+        city.save()
+        self.assertEqual(len(storage.all(State)), 2)
+        self.assertEqual(len(storage.all(City)), 1)
+
+    def test_delete_with_none(self):
+        """Correct output for def delete(self, obj=None) with obj None."""
+        initial_count = len(storage.all())
+        storage.delete(None)
+        self.assertEqual(len(storage.all()), initial_count)
+
+    def test_delete_with_obj(self):
+        """Correct output for def delete(self, obj=None) with obj a State object."""
+        state = State()
+        state.save()
+        initial_count = len(storage.all())
+        storage.delete(state)
+        self.assertEqual(len(storage.all()), initial_count - 1)
+
+    def test_all_method_documented(self):
+        """Tests if 'all' method is documented."""
+        self.assertTrue(len(storage.all.__doc__) > 0)
+
+    def test_delete_method_documented(self):
+        """Tests if 'delete' method is documented."""
+        self.assertTrue(len(storage.delete.__doc__) > 0)
         
 if __name__ == "__main__":
     unittest.main()
