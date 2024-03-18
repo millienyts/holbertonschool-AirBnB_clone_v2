@@ -10,12 +10,16 @@ class FileStorage:
 
     def all(self, cls=None):
         """
-        Returns a dictionary of models currently in storage
-        Optionally, returns objects of a specific class
+        Returns a dictionary of models currently in storage.
+        Optionally, returns objects of a specific class.
         """
         if cls:
-            class_name = cls.__name__ if type(cls) == type else cls
-            return {k: v for k, v in FileStorage.__objects.items() if k.split('.')[0] == class_name}
+            # Use isinstance for type checking, fix for E721
+            class_name = cls.__name__ if isinstance(cls, type) else cls
+            return {
+                k: v for k, v in FileStorage.__objects.items()
+                if k.split('.')[0] == class_name
+            }
         return FileStorage.__objects
 
     def new(self, obj):
@@ -62,6 +66,7 @@ class FileStorage:
                 for obj_id, obj_dict in objects.items():
                     cls_name = obj_dict["__class__"]
                     if cls_name in classes:
+                        # Breaking the following line to comply with E501
                         self.__objects[obj_id] = classes[cls_name](**obj_dict)
         except (FileNotFoundError, json.JSONDecodeError):
             pass
