@@ -122,19 +122,15 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
         
-        if arguments[0] == "User":
-            # Check if email and password are provided for User creation
-            if not any(arg.startswith("email=") for arg in arguments[1:]) or not any(arg.startswith("password=") for arg in arguments[1:]):
-                print("** missing email or password **")
-                return
-        
         kwargs = {}
         for arg in arguments[1:]:
-            key_value = arg.split('=', 1)
+            key_value = arg.split('=')
             if len(key_value) == 2:
                 key, value = key_value
                 # Handle string values
                 if value[0] == '"' and value[-1] == '"':
+                    # Replace underscores with spaces and remove outer quotes
+                    # Escape double quotes inside the string
                     value = value[1:-1].replace('_', ' ').replace('\\"', '"')
                 # Handle float and integer values
                 try:
@@ -150,7 +146,7 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[arguments[0]](**kwargs)
         new_instance.save()
         print(new_instance.id)
-
+        
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
