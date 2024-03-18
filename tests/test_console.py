@@ -60,7 +60,8 @@ class TestFileStorageConsole(unittest.TestCase):
 class TestDBStorageConsole(unittest.TestCase):
     """Tests for DBStorage related console functionality."""
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', "DBStorage tests only")
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                     "DBStorage tests only")
     def test_db_create(self):
         """Tests create command with database storage, checks user creation."""
         cmd = 'create User email="john25@gmail.com" password="123"'
