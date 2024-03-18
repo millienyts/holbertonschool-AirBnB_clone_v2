@@ -125,7 +125,6 @@ class HBNBCommand(cmd.Cmd):
         p_dict = {}
         for item in params:
             param_key, param_value = item.split('=')
-            # Remove quotes from string values and replace underscore with space
             if param_value[0] == '"' and param_value[-1] == '"':
                 param_value = param_value.strip('"').replace("_", " ")
             else:
