@@ -83,10 +83,9 @@ class TestConsoleDocs(unittest.TestCase):
                          "tests/test_console.py does not follow PEP8.")
 
     def test_console_module_docstring_exists(self):
-        """Check for existence of console.py module docstring."""
-        module = sys.modules[HBNBCommand.__module__]
-        self.assertIsNotNone(module.__doc__, "console.py module lacks a docstring.")
-
+    """Check for existence of console.py module docstring."""
+    module = sys.modules[HBNBCommand.__module__]
+    self.assertIsNotNone(module.__doc__, "console.py module lacks a docstring.")
 
     def test_HBNBCommand_class_docstring_exists(self):
         """
