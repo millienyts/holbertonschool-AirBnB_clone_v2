@@ -73,6 +73,40 @@ class TestDBStorageConsole(unittest.TestCase):
     # Include other DBStorage test methods here...
 
 
+class TestCreateCommand(unittest.TestCase):
+    """
+    Test cases for creating objects via the HBNB console command 'create'.
+    """
+
+    def setUp(self):
+        """Set up test case."""
+        self.consol = HBNBCommand()
+
+    def test_create_state_simple(self):
+        """Test creating a State with no additional parameters."""
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            self.consol.onecmd("create State")
+            state_id = mock_stdout.getvalue().strip()
+            self.assertIsNotNone(state_id)
+            self.assertTrue(len(state_id) > 0)
+
+    def test_create_state_with_name(self):
+        """Test creating a State with a name parameter."""
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            self.consol.onecmd("create State name=\"California\"")
+            state_id = mock_stdout.getvalue().strip()
+            self.assertIsNotNone(state_id)
+            self.assertTrue(len(state_id) > 0)
+            state_obj = storage.all()["State.{}".format(state_id)]
+            self.assertEqual(state_obj.name, "California")
+
+    # Additional methods to test other scenarios...
+
+    def tearDown(self):
+        """Clean up resources after tests."""
+        # Implement cleanup logic if necessary, like removing created objects from storage
+
+
 class TestConsoleDocs(unittest.TestCase):
     """
     Tests to assess the documentation and coding style of the console app.
