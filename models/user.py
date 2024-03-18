@@ -17,3 +17,9 @@ class User(BaseModel, Base):
                           cascade="all, delete-orphan")
     reviews = relationship('Review', backref='user',
                            cascade="all, delete-orphan")
+if "User" in args:
+    # Check if both email and password are provided
+    if "email=" not in args or "password=" not in args:
+        print("Missing email or password")
+        return
+    # Proceed with user creation if both are provided
