@@ -141,6 +141,25 @@ class HBNBCommand(cmd.Cmd):
     new_instance.save()
     print(new_instance.id)
 
+    # Handling parameters passed to create command
+    if len(args_list) > 1:
+        params = args_list[1:]
+        for param in params:
+            key, value = param.split("=")
+            # Handling string parameters, replacing underscore with space
+            if value.startswith('"') and value.endswith('"'):
+                value = value.strip('"').replace('_', ' ')
+            # Handling integer and float conversion
+            else:
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+            setattr(new_instance, key, value)
+
+    new_instance.save()
+    print(new_instance.id)
+
     # if len(p_dict) > 0:
     #     args = f"{class_name} {new_instance.id} {p_dict}"
     #     # call the update method
