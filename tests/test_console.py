@@ -107,6 +107,7 @@ class TestHBNBCommand(unittest.TestCase):
 
 # Below are the added DBStorage tests
 
+
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_create(self):
     """Tests create command with database storage, checks user creation."""
@@ -116,25 +117,30 @@ def test_db_create(self):
         user_id = cout.getvalue().strip()
         self.verify_user_creation_in_db(user_id)
 
+
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_show(self):
     """Tests the show command for an object in database storage."""
     # Implementation similar to test_db_create, verifying object retrieval
+
 
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_destroy(self):
     """Tests destroy command for an object in database storage."""
     # Test logic here to ensure object deletion is reflected in the database
 
+
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_all(self):
     """Tests the all command with DBStorage."""
     # Test to verify 'all' command functionality with DBStorage
 
+
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_update(self):
     """Tests the update command with DBStorage."""
     # Test to verify 'update' command functionality with DBStorage
+
 
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
 def test_db_count(self):
@@ -144,6 +150,7 @@ def test_db_count(self):
     final_count = storage.count('State')
     self.assertEqual(final_count, initial_count + 1)
 
+
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
 def test_fs_destroy(self):
     """Test object destruction with FileStorage."""
@@ -152,6 +159,7 @@ def test_fs_destroy(self):
         HBNBCommand().onecmd(cmd)
         user_id = cout.getvalue().strip()
         self.ensure_user_deletion(user_id)
+
 
 def verify_user_creation_in_db(self, user_id):
     """Helper function to verify user creation in database."""
