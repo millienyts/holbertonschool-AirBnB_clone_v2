@@ -77,9 +77,11 @@ class TestConsoleDocs(unittest.TestCase):
         self.assertIsNotNone(HBNBCommand.__doc__, 
                              "HBNBCommand class lacks a docstring.")
 
+
+
 class TestHBNBCommand(unittest.TestCase):
 """Represents the test class for the HBNBCommand class."""
-    
+
     @classmethod
     def setUpClass(cls):
 """Set up resources before any tests are run."""
@@ -175,6 +177,7 @@ class TestHBNBCommand(unittest.TestCase):
 
             # Ensure the User object is no longer present
             self.assertNotIn(f'User.{user_id}', storage.all().keys())
+
 
 if __name__ == "__main__":
     unittest.main()
