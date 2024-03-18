@@ -115,6 +115,27 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn('name="Texas"', cout.getvalue().strip())
 
  # Below are the added DBStorage tests
+class TestDBStorageConsole(unittest.TestCase):
+    """Tests for DBStorage related console functionality."""
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test only')
+    def test_db_create(self):
+        """Tests the create command with DBStorage."""
+        # Assuming environment variables are correctly set for DBStorage
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            HBNBCommand().onecmd('create User email="dbtest@example.com" password="pwd"')
+            user_id = cout.getvalue().strip()
+            # Verify that the new user exists in the database
+            db_conn = MySQLdb.connect(host=os.getenv('HBNB_MYSQL_HOST'),
+                                      user=os.getenv('HBNB_MYSQL_USER'),
+                                      passwd=os.getenv('HBNB_MYSQL_PWD'),
+                                      db=os.getenv('HBNB_MYSQL_DB'))
+            cursor = db_conn.cursor()
+            cursor.execute(f"SELECT COUNT(*) FROM users WHERE id = '{user_id}'")
+            result = cursor.fetchone()
+            self.assertTrue(result[0] > 0, "User was not created in the database")
+            cursor.close()
+            db_conn.close()                 
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
     def test_db_create(self):
