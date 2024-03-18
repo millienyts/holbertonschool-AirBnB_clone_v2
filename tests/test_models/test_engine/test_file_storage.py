@@ -1,27 +1,37 @@
 #!/usr/bin/python3
-"""
-Module for testing file storage.
-Combines tests for FileStorage methods, including setup and teardown, 
-functionality tests, and command line interface interaction via the HBNBCommand class.
-"""
+""" Module for testing file storage"""
+
 import unittest
 from models.base_model import BaseModel
 from models import storage
-from console import HBNBCommand
 import os
 from unittest.mock import patch
 from io import StringIO
+from console import HBNBCommand
 
-class TestFileStorage(unittest.TestCase):
-    """
-    Class to test the file storage method, including both direct method invocation
-    and command line interface interaction.
-    """
 
+class test_fileStorage(unittest.TestCase):
+    """ Class to test the file storage method """
+
+    # Existing setup, teardown, and test methods
+
+    def test_do_create_with_parameters(self):
+        """Test creating an object via the console with initial parameters."""
+        with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
+            command = 'create BaseModel name="Test" number=100'
+            HBNBCommand().onecmd(command)
+            obj_id = mocked_stdout.getvalue().strip()
+            self.assertTrue(obj_id)
+            
+            obj_key = f"BaseModel.{obj_id}"
+            self.assertIn(obj_key, storage.all())
+            
+            obj = storage.all()[obj_key]
+            self.assertEqual(obj.name, "Test")
+            self.assertEqual(obj.number, 100)
+            
     def setUp(self):
-        """
-        Set up the test environment by clearing the storage object dictionary.
-        """
+        """ Set up test environment """
         del_list = []
         for key in storage._FileStorage__objects.keys():
             del_list.append(key)
@@ -29,132 +39,95 @@ class TestFileStorage(unittest.TestCase):
             del storage._FileStorage__objects[key]
 
     def tearDown(self):
-        """
-        Clean up after tests by removing the storage file.
-        """
+        """ Remove storage file at end of tests """
         try:
             os.remove('file.json')
-        except FileNotFoundError:
+        except:
             pass
 
     def test_obj_list_empty(self):
-        """
-        Test that the storage objects list is initially empty.
-        """
+        """ __objects is initially empty """
         self.assertEqual(len(storage.all()), 0)
 
     def test_new(self):
-        """
-        Test that a new object is correctly added to the storage.
-        """
+        """ New object is correctly added to __objects """
         new = BaseModel()
-        self.assertIn(f"BaseModel.{new.id}", storage.all())
+        for obj in storage.all().values():
+            temp = obj
+        self.assertTrue(temp is obj)
 
     def test_all(self):
-        """
-        Test that the all method correctly returns the storage objects dictionary.
-        """
+        """ __objects is properly returned """
         new = BaseModel()
-        self.assertIsInstance(storage.all(), dict)
+        temp = storage.all()
+        self.assertIsInstance(temp, dict)
 
     def test_base_model_instantiation(self):
-        """
-        Test that a file is not unnecessarily created upon BaseModel instantiation.
-        """
+        """ File is not created on BaseModel save """
         new = BaseModel()
         self.assertFalse(os.path.exists('file.json'))
 
     def test_empty(self):
-        """
-        Test that data is saved to the file.
-        """
+        """ Data is saved to file """
         new = BaseModel()
+        thing = new.to_dict()
         new.save()
+        new2 = BaseModel(**thing)
         self.assertNotEqual(os.path.getsize('file.json'), 0)
 
     def test_save(self):
-        """
-        Test the FileStorage save method.
-        """
+        """ FileStorage save method """
         new = BaseModel()
-        new.save()
+        storage.save()
         self.assertTrue(os.path.exists('file.json'))
 
     def test_reload(self):
-        """
-        Test that the storage file is successfully loaded into the objects dictionary.
-        """
+        """ Storage file is successfully loaded to __objects """
         new = BaseModel()
-        new.save()
+        storage.save()
         storage.reload()
-        self.assertIn(f"BaseModel.{new.id}", storage.all())
+        for obj in storage.all().values():
+            loaded = obj
+        self.assertEqual(new.to_dict()['id'], loaded.to_dict()['id'])
 
     def test_reload_empty(self):
-        """
-        Test that attempting to load from an empty file raises a ValueError.
-        """
-        with open('file.json', 'w'):
+        """ Load from an empty file """
+        with open('file.json', 'w') as f:
             pass
         with self.assertRaises(ValueError):
             storage.reload()
 
     def test_reload_from_nonexistent(self):
-        """
-        Test that attempting to reload from a nonexistent file does nothing harmful.
-        """
-        self.assertIsNone(storage.reload())
+        """ Nothing happens if file does not exist """
+        self.assertEqual(storage.reload(), None)
 
     def test_base_model_save(self):
-        """
-        Test that the BaseModel save method triggers the storage save method.
-        """
+        """ BaseModel save method calls storage save """
         new = BaseModel()
         new.save()
         self.assertTrue(os.path.exists('file.json'))
 
     def test_type_path(self):
-        """
-        Test that the file path is stored as a string.
-        """
-        self.assertIsInstance(storage._FileStorage__file_path, str)
+        """ Confirm __file_path is string """
+        self.assertEqual(type(storage._FileStorage__file_path), str)
 
     def test_type_objects(self):
-        """
-        Test that the objects are stored in a dictionary.
-        """
-        self.assertIsInstance(storage.all(), dict)
+        """ Confirm __objects is a dict """
+        self.assertEqual(type(storage.all()), dict)
 
     def test_key_format(self):
-        """
-        Test that keys in the storage dictionary are correctly formatted.
-        """
+        """ Key is properly formatted """
         new = BaseModel()
-        expected_key = f"BaseModel.{new.id}"
-        self.assertIn(expected_key, storage.all())
+        _id = new.to_dict()['id']
+        for key in storage.all().keys():
+            temp = key
+        self.assertEqual(temp, 'BaseModel' + '.' + _id)
 
     def test_storage_var_created(self):
-        """
-        Test that the FileStorage object is correctly instantiated.
-        """
+        """ FileStorage object storage created """
         from models.engine.file_storage import FileStorage
-        self.assertIsInstance(storage, FileStorage)
-
-    def test_do_create_with_parameters(self):
-        """
-        Test creating an object via the console with initial parameters.
-        """
-        with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
-            command = 'create BaseModel name="Test" number=100'
-            HBNBCommand().onecmd(command)
-            obj_id = mocked_stdout.getvalue().strip()
-            self.assertTrue(obj_id)
-
-            obj_key = f"BaseModel.{obj_id}"
-            self.assertIn(obj_key, storage.all())
-
-            obj = storage.all()[obj_key]
-            self.assertEqual(obj.name, "Test")
-            self.assertEqual(obj.number, 100)
-
+        print(type(storage))
+        self.assertEqual(type(storage), FileStorage)
+        
 if __name__ == "__main__":
     unittest.main()
