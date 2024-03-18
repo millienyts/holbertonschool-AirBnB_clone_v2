@@ -208,18 +208,18 @@ def verify_user_creation_in_db(self, user_id):
 
 
 def ensure_user_deletion(self, user_id):
-            HBNBCommand().onecmd('create User name="Test User"')
-            user_id = cout.getvalue().strip()
+    HBNBCommand().onecmd('create User name="Test User"')
+    user_id = cout.getvalue().strip()
 
-            # Ensure the User object was created
-            self.assertTrue(user_id)
-            self.assertIn(f'User.{user_id}', storage.all().keys())
+    # Ensure the User object was created
+    self.assertTrue(user_id)
+    self.assertIn(f'User.{user_id}', storage.all().keys())
 
-            # Destroy the created User object
-            HBNBCommand().onecmd(f'destroy User {user_id}')
+    # Destroy the created User object
+    HBNBCommand().onecmd(f'destroy User {user_id}')
 
-            # Ensure the User object is no longer present
-            self.assertNotIn(f'User.{user_id}', storage.all().keys())
+    # Ensure the User object is no longer present
+    self.assertNotIn(f'User.{user_id}', storage.all().keys())
 
 
 if __name__ == "__main__":
