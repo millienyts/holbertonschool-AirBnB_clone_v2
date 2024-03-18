@@ -2,7 +2,6 @@
 """ Console Module """
 import cmd
 import sys
-import shlex  # for parsing command line arguments
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -108,32 +107,59 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, arg):
-        """Creates a new instance and prints the id."""
-        args = shlex.split(arg)  # This handles arguments with spaces properly
-
-        if len(args) == 0:
+    def do_create(self, args):
+        """ Create an object of any class"""
+        if not args:
             print("** class name missing **")
             return
+            # check if args contain parameters
+        p_dict = {}
+        if ('=' in args and ' ' in args):
+            # let's separate args into class & parameters
+            args = args.partition(' ')
+            class_name = args[0]
+            params = args[2].split(' ')
+            # convert params into a dictionary
 
-        class_name = args[0]
+            for item in params:
+                param_key, param_value = tuple(item.split('='))
+                if param_value[0] == '"':
+                    param_value = param_value.strip('"').replace("_", " ")
+                    # print(type(param_value))
+                else:
+                    try:
+                        param_value = eval(param_value)
+                        # print(type(param_value))
+                    except (SyntaxError, NameError):
+                        continue
+
+                p_dict[param_key] = param_value
+            # print(p_dict)
+
+        else:
+            class_name = args
+
         if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
-        # Create an instance of the specified class
         new_instance = HBNBCommand.classes[class_name]()
+        storage.save()
+        print(new_instance.id)
 
-        # Handling additional attributes
-        for attr in args[1:]:
-            key, val = attr.split("=")
-            # Convert val to the right type
-            # You might need additional parsing logic here
+        if len(p_dict) > 0:
+            args = f"{class_name} {new_instance.id} {p_dict}"
+            # call the update method
+            self.do_update(args)
+            # print(args)
+        storage.save()
 
-            setattr(new_instance, key, val)  # Set attribute
-
-        new_instance.save()  # Save the instance to the file storage
-        print(new_instance.id)  # Print the id of the new instance
+    # if len(p_dict) > 0:
+    #     args = f"{class_name} {new_instance.id} {p_dict}"
+    #     # call the update method
+    #     self.do_update(args)
+    #     # print(args)
+    # storage.save()
 
     def help_create(self):
         """ Help information for the create method """
