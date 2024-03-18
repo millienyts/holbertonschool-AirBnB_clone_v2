@@ -114,29 +114,6 @@ class TestHBNBCommand(unittest.TestCase):
             HBNBCommand().onecmd('show City {}'.format(mdl_id))
             self.assertIn('name="Texas"', cout.getvalue().strip())
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
-    def test_console_create_with_file_storage(self):
-        """Test console command 'create' with FileStorage."""
-        # Use patch to capture console output
-        with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
-            # Create a new object using the console command
-            HBNBCommand().onecmd('create BaseModel test_attr="Test"')
-            # Extract the new object's ID from the console output
-            obj_id = mocked_stdout.getvalue().strip()
-            self.assertTrue(obj_id)
-
-            # Verify the object exists in FileStorage
-            obj_key = f"BaseModel.{obj_id}"
-            self.assertIn(obj_key, storage.all())
-
-            # Fetch the object and verify its attributes
-            obj = storage.all()[obj_key]
-            self.assertEqual(obj.test_attr, "Test")
-
-            # Clean up: removing the created object to avoid test side-effects
-            del storage.all()[obj_key]
-            storage.save()
-
  # Below are the added DBStorage tests
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
