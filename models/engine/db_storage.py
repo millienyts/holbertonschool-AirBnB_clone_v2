@@ -51,12 +51,11 @@ class DBStorage:
             self.__session.delete(obj)
 
     def reload(self):
-        Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine, 
+    Base.metadata.create_all(self.__engine)
+    session_factory = sessionmaker(bind=self.__engine, 
                                        expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
-
     @staticmethod
     def classes():
         return {
