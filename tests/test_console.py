@@ -126,13 +126,7 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn('City.{}'.format(mdl_id), storage.all().keys())
             HBNBCommand().onecmd('show City {}'.format(mdl_id))
             self.assertIn('name="Texas"', cout.getvalue().strip())
-            pass
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-    def test_fs_create_user_via_console(self):
-        """Test creating a User via the console with FileStorage."""
-        # Implementation of your new test...
-        pass
  # Below are the added DBStorage tests
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
