@@ -9,7 +9,7 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
-
+import pycodestyle
 
 class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
@@ -72,7 +72,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is'}'\
+                    if pline[0]  is '{' and pline[-1] is'}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -121,31 +121,30 @@ class HBNBCommand(cmd.Cmd):
         if arguments[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        
         kwargs = {}
         for arg in arguments[1:]:
             key_value = arg.split('=')
             if len(key_value) == 2:
                 key, value = key_value
+                # Handle string values
                 if value[0] == '"' and value[-1] == '"':
+                    # Replace underscores with spaces and remove outer quotes
+                    # Escape double quotes inside the string
                     value = value[1:-1].replace('_', ' ').replace('\\"', '"')
-                elif '.' in value:
-                    try:
+                # Handle float and integer values
+                try:
+                    if '.' in value:
                         value = float(value)
-                    except ValueError:
-                        continue
-                else:
-                    try:
+                    else:
                         value = int(value)
-                    except ValueError:
-                        continue
+                except ValueError:
+                    continue  # Skip if conversion fails
                 kwargs[key] = value
-        
+        # Create and save the new instance with kwargs if available
         new_instance = HBNBCommand.classes[arguments[0]](**kwargs)
         new_instance.save()
         print(new_instance.id)
-
-
+        
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
@@ -341,4 +340,5 @@ class HBNBCommand(cmd.Cmd):
         print("Usage: update <className> <id> <attName> <attVal>\n")
 
 if __name__ == "__main__":
+
     HBNBCommand().cmdloop()
