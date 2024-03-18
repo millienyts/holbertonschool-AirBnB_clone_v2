@@ -112,8 +112,8 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
-		# check if args contain parameters
-        p_dict = {}
+            # check if args contain parameters
+            p_dict = {}
         if ('=' in args and ' ' in args):
             # let's separate args into class & parameters
             args = args.partition(' ')
@@ -132,7 +132,7 @@ class HBNBCommand(cmd.Cmd):
                         # print(type(param_value))
                     except (SyntaxError, NameError):
                         continue
-                
+
                 p_dict[param_key] = param_value
             # print(p_dict)
 
@@ -146,7 +146,7 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[class_name]()
         storage.save()
         print(new_instance.id)
-        
+
         if len(p_dict) > 0:
             args = f"{class_name} {new_instance.id} {p_dict}"
             # call the update method
