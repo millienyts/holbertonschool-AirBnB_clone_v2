@@ -132,7 +132,6 @@ class TestHBNBCommand(unittest.TestCase):
             # Cleanup
             db_session.delete(user)
             models.storage.save()
-            
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
     def test_db_create(self):
         """Tests the create command with the database storage."""
