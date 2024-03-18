@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-"""A unit test module for the console (command interpreter)."""
+"""
+A unit test module for the console (command interpreter).
+"""
 import json
 import MySQLdb
 import os
@@ -18,92 +20,122 @@ import sys
 
 
 class TestFileStorageConsole(unittest.TestCase):
-    """Tests for FileStorage related console functionality."""
+    """
+    Tests for FileStorage related console functionality.
+    """
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                     'Skipping FileStorage tests')
     def test_fs_create_persistence(self):
-        """Test object creation and persistence with FileStorage."""
+        """
+        Test object creation and persistence with FileStorage.
+        """
         with patch('sys.stdout', new_callable=StringIO) as cout:
             HBNBCommand().onecmd('create City name="San Francisco"')
             city_id = cout.getvalue().strip()
             self.assertTrue(city_id)
             HBNBCommand().onecmd('save')
             storage.reload()
-            self.assertIn(f'City.{city_id}', storage.all().keys())
+            self.assertIn('City.{}'.format(city_id), storage.all())
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                     'Skipping FileStorage tests')
     def test_fs_save_reload_object(self):
-        """Test saving and reloading an object with FileStorage."""
+        """
+        Test saving and reloading an object with FileStorage.
+        """
         with patch('sys.stdout', new_callable=StringIO) as cout:
             HBNBCommand().onecmd('create BaseModel name="Test Reload"')
             obj_id = cout.getvalue().strip()
         self.assertTrue(obj_id)
         HBNBCommand().onecmd('save')
         storage.reload()
-        key = f'BaseModel.{obj_id}'
-        all_objs = storage.all()
-        self.assertIn(key, all_objs)
-        self.assertEqual(all_objs[key].name, "Test Reload")
+        self.assertIn('BaseModel.{}'.format(obj_id), storage.all())
+        self.assertEqual(storage.all()['BaseModel.{}'.format(obj_id)].name, 
+                         "Test Reload")
 
 
 class TestConsoleDocs(unittest.TestCase):
-    """Tests to assess the documentation and coding style of the console app."""
+    """
+    Tests to assess the documentation and coding style of the console app.
+    """
 
     def test_pycodestyle_conformance_console(self):
-        """Test that console.py conforms to PEP8/pycodestyle."""
+        """
+        Test that console.py conforms to PEP8/pycodestyle.
+        """
         style = pycodestyle.StyleGuide(quiet=True)
         result = style.check_files(['console.py'])
         self.assertEqual(result.total_errors, 0,
                          "console.py does not follow PEP8 guidelines.")
 
     def test_pycodestyle_conformance_test_console(self):
-        """Test that console tests conform to PEP8/pycodestyle."""
+        """
+        Test that console tests conform to PEP8/pycodestyle.
+        """
         style = pycodestyle.StyleGuide(quiet=True)
         result = style.check_files(['tests/test_console.py'])
         self.assertEqual(result.total_errors, 0,
-                         "tests/test_console.py does not follow PEP8 guidelines.")
+                         "tests/test_console.py does not follow PEP8.")
 
     def test_console_module_docstring_exists(self):
-        """Check for existence of console.py module docstring."""
-        self.assertIsNotNone(console.__doc__, 
+        """
+        Check for existence of console.py module docstring.
+        """
+        self.assertIsNotNone(console.__doc__,
                              "console.py module lacks a docstring.")
 
     def test_HBNBCommand_class_docstring_exists(self):
-        """Check for existence of the HBNBCommand class docstring."""
-        self.assertIsNotNone(HBNBCommand.__doc__, 
+        """
+        Check for existence of the HBNBCommand class docstring.
+        """
+        self.assertIsNotNone(HBNBCommand.__doc__,
                              "HBNBCommand class lacks a docstring.")
 
 
 class TestHBNBCommand(unittest.TestCase):
-    """Represents the test class for the HBNBCommand class."""
+    """
+    Represents the test class for the HBNBCommand class.
+    """
 
     @classmethod
     def setUpClass(cls):
-        """Set up resources before any tests are run."""
+        """
+        Set up resources before any tests are run.
+        """
         cls.consol = HBNBCommand()
 
     @classmethod
     def tearDownClass(cls):
-        """Clean up resources after all tests have run."""
+        """
+        Clean up resources after all tests have run.
+        """
         del cls.consol
 
     def setUp(self):
-        """Set up the test environment before each test."""
+        """
+        Set up the test environment before each test.
+        """
         self.held, sys.stdout = sys.stdout, StringIO()
 
     def tearDown(self):
-        """Clean up after each test."""
+        """
+        Clean up after each test.
+        """
         sys.stdout = self.held
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 
+                     'Skipping FileStorage tests')
     def test_fs_create(self):
-        """Tests the create command with the file storage."""
+        """
+        Tests the create command with the file storage.
+        """
         with patch('sys.stdout', new_callable=StringIO) as cout:
             HBNBCommand().onecmd('create City name="Texas"')
             mdl_id = cout.getvalue().strip()
-            self.assertIn('City.{}'.format(mdl_id), storage.all().keys())
+            self.assertIn('City.{}'.format(mdl_id), storage.all())
             HBNBCommand().onecmd('show City {}'.format(mdl_id))
-            self.assertIn('name="Texas"', cout.getvalue().strip())
+            self.assertIn('name="Texas"', cout.getvalue())
 
 # Below are the added DBStorage tests
 
