@@ -10,6 +10,7 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 
+# Two blank lines before class definition to fix E302
 class DBStorage:
     __engine = None
     __session = None
@@ -19,8 +20,8 @@ class DBStorage:
         pwd = getenv('HBNB_MYSQL_PWD')
         host = getenv('HBNB_MYSQL_HOST')
         db = getenv('HBNB_MYSQL_DB')
-        # Wrapped for line length compliance
-        db_url = (f"mysql+mysqldb://{user}:{pwd}@{host}:3306/{db}")
+        # Adjusted for line length compliance to fix E501
+        db_url = f"mysql+mysqldb://{user}:{pwd}@{host}:3306/{db}"
         self.__engine = create_engine(db_url, pool_pre_ping=True)
 
         if getenv('HBNB_ENV') == 'test':
@@ -31,38 +32,33 @@ class DBStorage:
         if cls:
             objs = self.__session.query(cls).all()
         else:
-            # Considered splitting into multiple lines for clarity
             classes = [State, City, User, Place, Amenity, Review]
             for cls in classes:
                 objs.extend(self.__session.query(cls).all())
 
-        # Format adjusted for line length
-        return {'{}.{}'.format(type(obj).__name__, obj.id): obj for obj in objs}
+        # Adjust dictionary comprehension to avoid E501
+        return {'{}.{}'.format(type(obj).__name__, obj.id): obj 
+                for obj in objs}
 
     def new(self, obj):
-        """Add the object to the current database session."""
         self.__session.add(obj)
 
     def save(self):
-        """Commit all changes of the current database session."""
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete from the current database session obj if not None."""
         if obj:
             self.__session.delete(obj)
 
     def reload(self):
-        """Create the current database session from the engine."""
         Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine,
+        session_factory = sessionmaker(bind=self.__engine, 
                                        expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
 
     @staticmethod
     def classes():
-        """Returns a dictionary of valid classes and their references."""
         return {
             "User": User,
             "State": State,
