@@ -120,28 +120,23 @@ class HBNBCommand(cmd.Cmd):
         print("** class doesn't exist **")
         return
 
+    new_instance = HBNBCommand.classes[class_name]()
+
+    # Handling parameters passed to create command
     if len(args_list) > 1:
         params = args_list[1:]
-        p_dict = {}
-        for item in params:
-            param_key, param_value = item.split('=')
-            if param_value[0] == '"' and param_value[-1] == '"':
-                param_value = param_value.strip('"').replace("_", " ")
+        for param in params:
+            key, value = param.split("=")
+            # Handling string parameters, replacing underscore with space
+            if value.startswith('"') and value.endswith('"'):
+                value = value.strip('"').replace('_', ' ')
+            # Handling integer and float conversion
             else:
                 try:
-                    # Attempt to convert numerical values to int or float
-                    param_value = eval(param_value)
+                    value = eval(value)
                 except (SyntaxError, NameError):
-                    continue  # Skip this param if it can't be evaluated
-            p_dict[param_key] = param_value
-    else:
-        p_dict = {}
-
-    # Create new instance and apply attributes from p_dict if any
-    new_instance = HBNBCommand.classes[class_name]()
-    for attr, value in p_dict.items():
-        if hasattr(new_instance, attr):
-            setattr(new_instance, attr, value)
+                    continue
+            setattr(new_instance, key, value)
 
     new_instance.save()
     print(new_instance.id)
