@@ -6,9 +6,9 @@ Combines documentation, style, and functional tests.
 from datetime import datetime
 import inspect
 import models
-from models.engine import db_storage
+from models.engine.db_storage import DBStorage
+from models.base_model import Base
 from models.amenity import Amenity
-from models.base_model import BaseModel
 from models.city import City
 from models.place import Place
 from models.review import Review
@@ -18,9 +18,13 @@ import json
 import os
 import pycodestyle
 import unittest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-DBStorage = db_storage.DBStorage
 storage_t = os.getenv("HBNB_TYPE_STORAGE")
+if storage_t == 'db':
+    models.storage.reload()
+
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
 
@@ -60,32 +64,54 @@ class TestDBStorageDocs(unittest.TestCase):
 class TestDBStorage(unittest.TestCase):
     """Tests for specific DBStorage functionality."""
     
+    @classmethod
+    def setUpClass(cls):
+        """Prepare for tests. Only runs when DB storage is used."""
+        if storage_t == 'db':
+            cls.storage = DBStorage()
+            cls.engine = cls.storage._DBStorage__engine
+            Base.metadata.create_all(cls.engine)
+            cls.session = sessionmaker(bind=cls.engine)()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up resources after all tests have run. Only runs when DB storage is used."""
+        if storage_t == 'db':
+            Base.metadata.drop_all(cls.engine)
+            cls.session.close()
+
     @unittest.skipIf(storage_t != 'db', "DB storage tests only applicable if storage type is 'db'")
     def test_all_returns_dict(self):
         """Verify that calling all without arguments returns a dictionary."""
         self.assertIsInstance(models.storage.all(), dict, "all() should return a dictionary.")
 
     @unittest.skipIf(storage_t != 'db', "DB storage tests only applicable if storage type is 'db'")
-    def test_all_no_class(self):
-        """Test all method returns all rows when no class is provided."""
-        self.assertIs(type(models.storage.all()), dict)
+    def test_delete(self):
+        """Test that delete properly removes an object from the database."""
+        new_state = State(name="DeleteTest")
+        models.storage.new(new_state)
+        models.storage.save()
+        self.assertIn(new_state, models.storage.all(State).values())
+        models.storage.delete(new_state)
+        models.storage.save()
+        self.assertNotIn(new_state, models.storage.all(State).values())
 
     @unittest.skipIf(storage_t != 'db', "DB storage tests only applicable if storage type is 'db'")
-    def test_new(self):
-        """Test that new adds an object to the database."""
-        instance = list(classes.values())[0]()
-        models.storage.new(instance)
+    def test_create_new_object(self):
+        """Test creating a new object and saving it to the database."""
+        initial_count = len(models.storage.all(User))
+        new_user = User(email="test@example.com", password="test")
+        models.storage.new(new_user)
         models.storage.save()
-        self.assertIn(instance, models.storage.all(type(instance)).values())
+        final_count = len(models.storage.all(User))
+        self.assertEqual(final_count, initial_count + 1, "Failed to create a new User object in the database")
 
     @unittest.skipIf(storage_t != 'db', "DB storage tests only applicable if storage type is 'db'")
-    def test_save(self):
-        """Ensure save method properly saves objects to file.json."""
-        initial_count = len(models.storage.all())
-        instance = list(classes.values())[0]()
-        models.storage.new(instance)
-        models.storage.save()
-        self.assertGreater(len(models.storage.all()), initial_count)
+    def test_reload(self):
+        """Test reloading objects from the database."""
+        # Note: Implementation may vary based on how you handle session management
+        models.storage.reload()
+        self.assertIsNotNone(models.storage._DBStorage__session, "Session should be initialized on reload")
 
 if __name__ == "__main__":
     unittest.main()
