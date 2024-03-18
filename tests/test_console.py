@@ -115,7 +115,24 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn('name="Texas"', cout.getvalue().strip())
 
  # Below are the added DBStorage tests
+  @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test only')
+    def test_db_create_user(self):
+        """Test creating a User via the console with DBStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            HBNBCommand().onecmd("create User email='test@example.com' password='test'")
+            user_id = cout.getvalue().strip()
+            self.assertTrue(user_id)
 
+            # Directly verify the new User exists in the database
+            db_session = models.storage._DBStorage__session
+            user = db_session.query(User).get(user_id)
+            self.assertIsNotNone(user)
+            self.assertEqual(user.email, 'test@example.com')
+
+            # Cleanup
+            db_session.delete(user)
+            models.storage.save()
+            
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
     def test_db_create(self):
         """Tests the create command with the database storage."""
