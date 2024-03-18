@@ -51,7 +51,7 @@ class TestFileStorageConsole(unittest.TestCase):
         HBNBCommand().onecmd('save')
         storage.reload()
         self.assertIn('BaseModel.{}'.format(obj_id), storage.all())
-        self.assertEqual(storage.all()['BaseModel.{}'.format(obj_id)].name, 
+        self.assertEqual(storage.all()['BaseModel.{}'.format(obj_id)].name,
                          "Test Reload")
 
 
@@ -124,7 +124,7 @@ class TestHBNBCommand(unittest.TestCase):
         """
         sys.stdout = self.held
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
                      'Skipping FileStorage tests')
     def test_fs_create(self):
         """
