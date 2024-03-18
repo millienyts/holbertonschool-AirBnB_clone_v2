@@ -97,6 +97,25 @@ class TestHBNBCommand(unittest.TestCase):
             user_key = f"User.{user_id}"
             self.assertIn(user_key, storage.all().keys())
             # Cleanup if necessary
+            
+              @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
+    def test_fs_destroy(self):
+        """Test object destruction with FileStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            # Create a new User via the console to ensure we have an object to delete
+            HBNBCommand().onecmd('create User name="Test User"')
+            user_id = cout.getvalue().strip()
+
+            # Ensure the User object was created
+            self.assertTrue(user_id)
+            self.assertIn(f'User.{user_id}', storage.all().keys())
+
+            # Destroy the created User object
+            HBNBCommand().onecmd(f'destroy User {user_id}')
+
+            # Ensure the User object is no longer present
+            self.assertNotIn(f'User.{user_id}', storage.all().keys())
+
     """Represents the test class for the HBNBCommand class."""
     
     @classmethod
