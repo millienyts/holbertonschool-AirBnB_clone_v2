@@ -10,7 +10,6 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 
-
 class DBStorage:
     __engine = None
     __session = None
@@ -20,6 +19,7 @@ class DBStorage:
         pwd = getenv('HBNB_MYSQL_PWD')
         host = getenv('HBNB_MYSQL_HOST')
         db = getenv('HBNB_MYSQL_DB')
+        # Adjusted line length
         db_url = f"mysql+mysqldb://{user}:{pwd}@{host}:3306/{db}"
         self.__engine = create_engine(db_url, pool_pre_ping=True)
 
@@ -28,14 +28,15 @@ class DBStorage:
 
     def all(self, cls=None):
         objs = []
-        if cls:
+        if cls is not None:
             objs = self.__session.query(cls).all()
         else:
             classes = [State, City, User, Place, Amenity, Review]
             for cls in classes:
                 objs.extend(self.__session.query(cls).all())
 
-        return {'{}.{}'.format(type(obj).__name__, obj.id): obj for obj in objs}
+        # Fixed line length
+        return {f'{type(obj).__name__}.{obj.id}': obj for obj in objs}
 
     def new(self, obj):
         self.__session.add(obj)
@@ -44,13 +45,13 @@ class DBStorage:
         self.__session.commit()
 
     def delete(self, obj=None):
-        if obj:
+        if obj is not None:
             self.__session.delete(obj)
 
     def reload(self):
         Base.metadata.create_all(self.__engine)
-session_factory = sessionmaker(bind=self.__engine, 
-                               expire_on_commit=False)
+        # Fixed indentation and removed trailing whitespace
+        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
 
