@@ -59,10 +59,26 @@ class TestFileStorageConsole(unittest.TestCase):
         self.assertIn(key, all_objs)
         self.assertEqual(all_objs[key].name, "Test Reload")
 
+    # Additional tests for FileStorage
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+    def test_fs_create_with_multiple_attributes(self):
+        """Test creating an object with multiple attributes via the console."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            cmd = 'create User email="test@example.com" password="pwd" first_name="Test" last_name="User"'
+            HBNBCommand().onecmd(cmd)
+            user_id = cout.getvalue().strip()
+            self.assertTrue(user_id)
+
+            # Confirm that attributes are properly set
+            obj = storage.all()["User." + user_id]
+            self.assertEqual(obj.email, "test@example.com")
+            self.assertEqual(obj.password, "pwd")
+            self.assertEqual(obj.first_name, "Test")
+            self.assertEqual(obj.last_name, "User")
 
 class TestConsoleDocs(unittest.TestCase):
     """Tests to assess the documentation and coding style of the console application."""
-    
+
     def test_pycodestyle_conformance_console(self):
         """Test that console.py conforms to PEP8/pycodestyle."""
         style = pycodestyle.StyleGuide(quiet=True)
@@ -85,17 +101,17 @@ class TestConsoleDocs(unittest.TestCase):
 
 class TestHBNBCommand(unittest.TestCase):
     """Represents the test class for the HBNBCommand class."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Set up resources before any tests are run."""
         cls.consol = HBNBCommand()
-    
+
     @classmethod
     def tearDownClass(cls):
         """Clean up resources after all tests have run."""
         del cls.consol
-    
+
     def setUp(self):
         """Set up the test environment before each test."""
         self.held, sys.stdout = sys.stdout, StringIO()
