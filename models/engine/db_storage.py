@@ -44,7 +44,6 @@ class DBStorage:
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete obj from the database session"""
         if obj is not None:
             self.__session.delete(obj)
 
