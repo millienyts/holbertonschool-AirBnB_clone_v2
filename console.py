@@ -109,7 +109,7 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, arg):
-        """Creates a new instance of BaseModel, saves it (to the JSON file) and prints the id."""
+        """Creates a new instance and prints the id."""
         args = shlex.split(arg)  # This handles arguments with spaces properly
 
         if len(args) == 0:
@@ -124,10 +124,10 @@ class HBNBCommand(cmd.Cmd):
         # Create an instance of the specified class
         new_instance = HBNBCommand.classes[class_name]()
 
-        # Handling additional attributes if provided in the command
+        # Handling additional attributes
         for attr in args[1:]:
             key, val = attr.split("=")
-            # Convert val to the right type (int, float, or string) if necessary
+            # Convert val to the right type
             # You might need additional parsing logic here
 
             setattr(new_instance, key, val)  # Set attribute
