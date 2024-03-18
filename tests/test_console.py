@@ -84,49 +84,6 @@ class TestConsoleDocs(unittest.TestCase):
         self.assertIsNotNone(HBNBCommand.__doc__, "HBNBCommand class lacks a docstring.")
 
 class TestHBNBCommand(unittest.TestCase):
-...
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-    def test_fs_create_user_via_console(self):
-        """Test creating a User via the console with FileStorage."""
-        with patch('sys.stdout', new_callable=StringIO) as cout:
-            # Command execution and assertions
-            HBNBCommand().onecmd("create User email='fs_test@example.com' password='fs_test'")
-            user_id = cout.getvalue().strip()
-            self.assertTrue(user_id)
-            # Verify the new User exists in FileStorage
-            user_key = f"User.{user_id}"
-            self.assertIn(user_key, storage.all().keys())
-            # Cleanup if necessary
-            
-              @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-    def test_fs_destroy(self):
-        """Test object destruction with FileStorage."""
-        with patch('sys.stdout', new_callable=StringIO) as cout:
-            # Create a new User via the console to ensure we have an object to delete
-            HBNBCommand().onecmd('create User name="Test User"')
-            user_id = cout.getvalue().strip()
-
-            # Ensure the User object was created
-            self.assertTrue(user_id)
-            self.assertIn(f'User.{user_id}', storage.all().keys())
-
-            # Destroy the created User object
-            HBNBCommand().onecmd(f'destroy User {user_id}')
-
-            # Ensure the User object is no longer present
-            self.assertNotIn(f'User.{user_id}', storage.all().keys())
-            
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
-def test_fs_update(self):
-    """Test updating an object via the console with FileStorage."""
-    with patch('sys.stdout', new_callable=StringIO) as cout:
-        HBNBCommand().onecmd("create User email='update_test@example.com'")
-        user_id = cout.getvalue().strip()
-        HBNBCommand().onecmd(f"update User {user_id} first_name 'Test'")
-        user = storage.all()["User." + user_id]
-        self.assertEqual(user.first_name, "Test")
-
-
     """Represents the test class for the HBNBCommand class."""
     
     @classmethod
@@ -146,7 +103,6 @@ def test_fs_update(self):
     def tearDown(self):
         """Clean up after each test."""
         sys.stdout = self.held
-
 
     @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
     def test_fs_create(self):
