@@ -128,10 +128,10 @@ class HBNBCommand(cmd.Cmd):
 
         # Handling additional attributes if provided in the command
         for attr in args_list[1:]:
-            # Check if attribute assignment is in the correct format 'key=value'
+            # Check if attribute  format 'key=value'
             if '=' not in attr:
                 print(
-                    f"** error: attribute '{attr}' is not in the format key=value **")
+                    f"** error: attribute '{attr}' key=value **")
                 continue
 
             key, value = attr.split('=', 1)
@@ -143,7 +143,7 @@ class HBNBCommand(cmd.Cmd):
                 if isinstance(eval_value, (int, float)) or (value.startswith('"') and value.endswith('"')):
                     value = eval_value
             except:
-                # Handle as a string, replacing underscores with spaces and stripping quotes
+                # Handle as a string,
                 value = value.strip('"').replace('_', ' ')
 
             # Set attribute
