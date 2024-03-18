@@ -2,10 +2,8 @@
 """
 A unit test module for the console (command interpreter).
 """
-import json
 import MySQLdb
 import os
-import sqlalchemy
 import unittest
 from io import StringIO
 from unittest.mock import patch
@@ -20,8 +18,6 @@ from models.state import State
 from models.place import Place
 from models.review import Review
 from models.amenity import Amenity
-
-
 import sys
 
 
@@ -85,11 +81,10 @@ class TestConsoleDocs(unittest.TestCase):
                          "tests/test_console.py does not follow PEP8.")
 
     def test_console_module_docstring_exists(self):
-        """
-        Check for existence of console.py module docstring.
-        """
-        self.assertIsNotNone(console.__doc__,
-                             "console.py module lacks a docstring.")
+        """Check for existence of console.py module docstring."""
+        module = sys.modules[HBNBCommand.__module__]
+        self.assertIsNotNone(
+            module.__doc__, "console.py module lacks a docstring.")
 
     def test_HBNBCommand_class_docstring_exists(self):
         """
