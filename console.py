@@ -109,37 +109,37 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
+    if not args:
+        print("** class name missing **")
+        return
 
-        args_list = args.split(" ")
-        class_name = args_list[0]
+    args_list = args.split(" ")
+    class_name = args_list[0]
 
-        if class_name not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
+    if class_name not in HBNBCommand.classes:
+        print("** class doesn't exist **")
+        return
 
-        new_instance = HBNBCommand.classes[class_name]()
+    new_instance = HBNBCommand.classes[class_name]()
 
-        # Handling parameters passed to create command
-        if len(args_list) > 1:
-            params = args_list[1:]
-            for param in params:
-                key, value = param.split("=")
-                # Handling string parameters, replacing underscore with space
-                if value.startswith('"') and value.endswith('"'):
-                    value = value.strip('"').replace('_', ' ')
-                # Handling integer and float conversion
-                else:
-                    try:
-                        value = eval(value)
-                    except (SyntaxError, NameError):
-                        continue
-                setattr(new_instance, key, value)
+    # Handling parameters passed to create command
+    if len(args_list) > 1:
+        params = args_list[1:]
+        for param in params:
+            key, value = param.split("=")
+            # Handling string parameters, replacing underscore with space
+            if value.startswith('"') and value.endswith('"'):
+                value = value.strip('"').replace('_', ' ')
+            # Handling integer and float conversion
+            else:
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+            setattr(new_instance, key, value)
 
-        new_instance.save()
-        print(new_instance.id)
+    new_instance.save()
+    print(new_instance.id)
 
     # Handling parameters passed to create command
     if len(args_list) > 1:
