@@ -84,6 +84,19 @@ class TestConsoleDocs(unittest.TestCase):
         self.assertIsNotNone(HBNBCommand.__doc__, "HBNBCommand class lacks a docstring.")
 
 class TestHBNBCommand(unittest.TestCase):
+...
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test only')
+    def test_fs_create_user_via_console(self):
+        """Test creating a User via the console with FileStorage."""
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            # Command execution and assertions
+            HBNBCommand().onecmd("create User email='fs_test@example.com' password='fs_test'")
+            user_id = cout.getvalue().strip()
+            self.assertTrue(user_id)
+            # Verify the new User exists in FileStorage
+            user_key = f"User.{user_id}"
+            self.assertIn(user_key, storage.all().keys())
+            # Cleanup if necessary
     """Represents the test class for the HBNBCommand class."""
     
     @classmethod
