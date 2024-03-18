@@ -174,6 +174,7 @@ def verify_user_creation_in_db(self, user_id):
     cursor.close()
     db_conn.close()
 
+
 def ensure_user_deletion(self, user_id):
             HBNBCommand().onecmd('create User name="Test User"')
             user_id = cout.getvalue().strip()
