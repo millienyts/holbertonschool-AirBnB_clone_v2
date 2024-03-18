@@ -104,7 +104,7 @@ class TestCreateCommand(unittest.TestCase):
 
     def tearDown(self):
         """Clean up resources after tests."""
-        # Implement cleanup logic if necessary, like removing created objects from storage
+        # Implement cleanup logic if necessary, removing created objects from storage
 
 
 class TestConsoleDocs(unittest.TestCase):
