@@ -2,18 +2,24 @@
 """
 A unit test module for the console (command interpreter).
 """
-import unittest
-from unittest.mock import patch
-from io import StringIO
+import json
+import MySQLdb
 import os
-from console import HBNBCommand
-from models import storage
+import sqlalchemy
+import unittest
+from io import StringIO
+from unittest.mock import patch
 import pycodestyle
 
 from console import HBNBCommand
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
+from models.city import City
+from models.state import State
+from models.place import Place
+from models.review import Review
+from models.amenity import Amenity
 import sys
 
 
