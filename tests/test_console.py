@@ -2,10 +2,8 @@
 """
 A unit test module for the console (command interpreter).
 """
-import json
 import MySQLdb
 import os
-import sqlalchemy
 import unittest
 from io import StringIO
 from unittest.mock import patch
@@ -15,7 +13,11 @@ from console import HBNBCommand
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
-from tests import clear_stream
+from models.city import City
+from models.state import State
+from models.place import Place
+from models.review import Review
+from models.amenity import Amenity
 import sys
 
 
@@ -55,6 +57,22 @@ class TestFileStorageConsole(unittest.TestCase):
                          "Test Reload")
 
 
+class TestDBStorageConsole(unittest.TestCase):
+    """Tests for DBStorage related console functionality."""
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                     "DBStorage tests only")
+    def test_db_create(self):
+        """Tests create command with database storage, checks user creation."""
+        cmd = 'create User email="john25@gmail.com" password="123"'
+        with patch('sys.stdout', new_callable=StringIO) as cout:
+            HBNBCommand().onecmd(cmd)
+            user_id = cout.getvalue().strip()
+            self.verify_user_creation_in_db(user_id)
+
+    # Include other DBStorage test methods here...
+
+
 class TestConsoleDocs(unittest.TestCase):
     """
     Tests to assess the documentation and coding style of the console app.
@@ -79,11 +97,10 @@ class TestConsoleDocs(unittest.TestCase):
                          "tests/test_console.py does not follow PEP8.")
 
     def test_console_module_docstring_exists(self):
-        """
-        Check for existence of console.py module docstring.
-        """
-        self.assertIsNotNone(console.__doc__,
-                             "console.py module lacks a docstring.")
+        """Check for existence of console.py module docstring."""
+        module = sys.modules[HBNBCommand.__module__]
+        self.assertIsNotNone(
+            module.__doc__, "console.py module lacks a docstring.")
 
     def test_HBNBCommand_class_docstring_exists(self):
         """

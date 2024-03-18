@@ -108,51 +108,64 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-            # check if args contain parameters
-            p_dict = {}
-        if ('=' in args and ' ' in args):
-            # let's separate args into class & parameters
-            args = args.partition(' ')
-            class_name = args[0]
-            params = args[2].split(' ')
-            # convert params into a dictionary
+        """Create an object of any class"""
+    if not args:
+        print("** class name missing **")
+        return
 
-            for item in params:
-                param_key, param_value = tuple(item.split('='))
-                if param_value[0] == '"':
-                    param_value = param_value.strip('"').replace("_", " ")
-                    # print(type(param_value))
-                else:
-                    try:
-                        param_value = eval(param_value)
-                        # print(type(param_value))
-                    except (SyntaxError, NameError):
-                        continue
+    args_list = args.split(" ")
+    class_name = args_list[0]
 
-                p_dict[param_key] = param_value
-            # print(p_dict)
+    if class_name not in HBNBCommand.classes:
+        print("** class doesn't exist **")
+        return
 
-        else:
-            class_name = args
+    new_instance = HBNBCommand.classes[class_name]()
 
-        if class_name not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
+    # Handling parameters passed to create command
+    if len(args_list) > 1:
+        params = args_list[1:]
+        for param in params:
+            key, value = param.split("=")
+            # Handling string parameters, replacing underscore with space
+            if value.startswith('"') and value.endswith('"'):
+                value = value.strip('"').replace('_', ' ')
+            # Handling integer and float conversion
+            else:
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+            setattr(new_instance, key, value)
 
-        new_instance = HBNBCommand.classes[class_name]()
-        storage.save()
-        print(new_instance.id)
+    new_instance.save()
+    print(new_instance.id)
 
-        if len(p_dict) > 0:
-            args = f"{class_name} {new_instance.id} {p_dict}"
-            # call the update method
-            self.do_update(args)
-            # print(args)
-        storage.save()
+    # Handling parameters passed to create command
+    if len(args_list) > 1:
+        params = args_list[1:]
+        for param in params:
+            key, value = param.split("=")
+            # Handling string parameters, replacing underscore with space
+            if value.startswith('"') and value.endswith('"'):
+                value = value.strip('"').replace('_', ' ')
+            # Handling integer and float conversion
+            else:
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+            setattr(new_instance, key, value)
+
+    new_instance.save()
+    print(new_instance.id)
+
+    # if len(p_dict) > 0:
+    #     args = f"{class_name} {new_instance.id} {p_dict}"
+    #     # call the update method
+    #     self.do_update(args)
+    #     # print(args)
+    # storage.save()
 
     def help_create(self):
         """ Help information for the create method """
