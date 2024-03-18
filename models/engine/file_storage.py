@@ -8,17 +8,17 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
-  def all(self, cls=None):
-        """Returns a dictionary of models currently in storage.
-        If cls is provided, returns only items of that class type.
-        """
-        if cls:
-            new_dict = {}
-            for key, value in self.__objects.items():
-                if isinstance(value, cls):
-                    new_dict[key] = value
-            return new_dict
-        return self.__objects
+    def all(self, cls=None):
+            """Returns a dictionary of models currently in storage.
+            If cls is provided, returns only items of that class type.
+            """
+            if cls:
+                new_dict = {}
+                for key, value in self.__objects.items():
+                    if isinstance(value, cls):
+                        new_dict[key] = value
+                return new_dict
+            return self.__objects
 
     def delete(self, obj=None):
         """Deletes obj from __objects if it’s inside."""
