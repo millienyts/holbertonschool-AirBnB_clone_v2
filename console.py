@@ -123,10 +123,11 @@ class HBNBCommand(cmd.Cmd):
             return
 
         # Special validation for Place creation
-        if class_name == "Place" and not self.validate_city_user_ids(args_list):
-            return
+        if class_name == "Place":
+            city_id, user_id = self.extract_place_args(args_list)
+            if not self.validate_city_user_ids(city_id, user_id):
+                return
 
-        # Create an instance of the specified class
         new_instance = self.classes[class_name]()
 
         for attr in args_list[1:]:
@@ -134,15 +135,33 @@ class HBNBCommand(cmd.Cmd):
                 print(
                     f"** error: attribute '{attr}' not in key=value format **")
                 continue
-
             key, value = self.parse_attr_value(attr)
             setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
 
-    @staticmethod
-    def parse_attr_value(attr):
+    def extract_place_args(self, args_list):
+        """Extracts and returns city_id and user_id from args_list."""
+        city_id = user_id = None
+        for arg in args_list:
+            if arg.startswith("city_id="):
+                city_id = arg.split("=", 1)[1].strip('"')
+            elif arg.startswith("user_id="):
+                user_id = arg.split("=", 1)[1].strip('"')
+        return city_id, user_id
+
+    def validate_city_user_ids(self, city_id, user_id):
+        """Validates the existence of city_id and user_id."""
+        if city_id and not storage.get(City, city_id):
+            print(f"** no instance found for city_id {city_id} **")
+            return False
+        if user_id and not storage.get(User, user_id):
+            print(f"** no instance found for user_id {user_id} **")
+            return False
+        return True
+
+    def parse_attr_value(self, attr):
         """Parses the attribute and returns the key and the correctly formatted value."""
         key, value = attr.split('=', 1)
         try:
@@ -150,17 +169,6 @@ class HBNBCommand(cmd.Cmd):
         except (SyntaxError, NameError, ValueError):
             value = value.strip('"').replace('_', ' ')
         return key, value
-
-    def validate_city_user_ids(self, args_list):
-        """Validates the existence of city_id and user_id."""
-        # Assuming function 'check_existence' checks if the IDs exist in storage
-        for attr in args_list:
-            if attr.startswith("city_id=") or attr.startswith("user_id="):
-                key, value = attr.split("=", 1)
-                if not self.check_existence(key, value.strip('"')):
-                    print(f"** {key} '{value}' doesn't exist **")
-                    return False
-        return True
 
     def check_existence(self, key, value):
         """Stub for checking if the given key-value exists in storage."""
