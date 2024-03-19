@@ -272,5 +272,21 @@ def ensure_user_deletion(self, user_id):
     self.assertNotIn(f'User.{user_id}', storage.all().keys())
 
 
+class TestCreateWithParams(unittest.TestCase):
+
+    def test_create_with_params(self):
+        """Test object creation with parameters."""
+        with patch('sys.stdout', new_callable=StringIO) as mock_output:
+            cmd = 'create State name="TestState" Population=1000000'
+            HBNBCommand().onecmd(cmd)
+            state_id = mock_output.getvalue().strip()
+            self.assertTrue(state_id)
+
+            # Verify the State was created with the specified parameters
+            state = storage.all()["State." + state_id]
+            self.assertEqual(state.name, "TestState")
+            self.assertEqual(state.Population, 1000000)
+
+
 if __name__ == "__main__":
     unittest.main()

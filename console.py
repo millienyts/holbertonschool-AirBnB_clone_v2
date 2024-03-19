@@ -117,31 +117,43 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = args_list[0]
-
         if class_name not in self.classes:
             print("** class doesn't exist **")
             return
 
-        # Special validation for Place creation
-        if class_name == "Place":
-            city_id, user_id = self.extract_place_args(args_list)
-            if not self.validate_city_user_ids(city_id, user_id):
-                return
+        attributes = {}
+        for arg in args_list[1:]:
+            try:
+                key, value = self.parse_create_argument(arg)
+                if key and value is not None:
+                    attributes[key] = value
+            except ValueError:
+                continue  # Skip invalid arguments
 
-        new_instance = self.classes[class_name]()
-
-        for attr in args_list[1:]:
-            if '=' not in attr:
-                print(
-                    f"** error: attribute '{attr}' not in key=value format **")
-                continue
-
-            key, value = self.parse_attr_value(attr)
-            setattr(new_instance, key, value)
-
+        new_instance = self.classes[class_name](**attributes)
         new_instance.save()
         print(new_instance.id)
 
+    def parse_create_argument(self, arg):
+        """Parses an argument and returns a key-value pair."""
+        parts = arg.split('=', 1)
+        if len(parts) != 2:
+            raise ValueError("Invalid argument format")
+
+        key, value_str = parts
+        # Strip leading and trailing double quotes for strings
+        if value_str.startswith('"') and value_str.endswith('"'):
+            value = value_str.strip('"').replace('_', ' ').replace('\\"', '"')
+        else:
+            # Attempt to parse as integer or float
+            try:
+                value = int(value_str)
+            except ValueError:
+                try:
+                    value = float(value_str)
+                except ValueError:
+                    raise ValueError("Invalid value type")
+        return key, value
     # Add or modify other methods as necessary...
 
     def validate_city_user_ids(self, city_id, user_id):
