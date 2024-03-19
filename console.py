@@ -135,11 +135,25 @@ class HBNBCommand(cmd.Cmd):
                 print(
                     f"** error: attribute '{attr}' not in key=value format **")
                 continue
+
             key, value = self.parse_attr_value(attr)
             setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
+
+    # Add or modify other methods as necessary...
+
+    def validate_city_user_ids(self, city_id, user_id):
+        """Validates the existence of city_id and user_id."""
+        city_exists = storage.get(
+            "City", city_id) is not None if city_id else True
+        user_exists = storage.get(
+            "User", user_id) is not None if user_id else True
+        if not city_exists or not user_exists:
+            print("** city_id or user_id does not exist **")
+            return False
+        return True
 
     def extract_place_args(self, args_list):
         """Extracts and returns city_id and user_id from args_list."""
@@ -150,25 +164,6 @@ class HBNBCommand(cmd.Cmd):
             elif arg.startswith("user_id="):
                 user_id = arg.split("=", 1)[1].strip('"')
         return city_id, user_id
-
-    def validate_city_user_ids(self, city_id, user_id):
-        """Validates the existence of city_id and user_id."""
-        if city_id and not storage.get(City, city_id):
-            print(f"** no instance found for city_id {city_id} **")
-            return False
-        if user_id and not storage.get(User, user_id):
-            print(f"** no instance found for user_id {user_id} **")
-            return False
-        return True
-
-    def parse_attr_value(self, attr):
-        """Parses the attribute and returns the key and the correctly formatted value."""
-        key, value = attr.split('=', 1)
-        try:
-            value = eval(value, {"__builtins__": None}, {})
-        except (SyntaxError, NameError, ValueError):
-            value = value.strip('"').replace('_', ' ')
-        return key, value
 
     def check_existence(self, key, value):
         """Stub for checking if the given key-value exists in storage."""
