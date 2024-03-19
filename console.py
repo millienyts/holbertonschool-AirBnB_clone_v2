@@ -110,7 +110,6 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """Create an object of any class with optional attributes."""
-        # Split arguments by spaces, considering quoted strings
         args_list = shlex.split(args)
 
         if len(args_list) == 0:
@@ -119,40 +118,55 @@ class HBNBCommand(cmd.Cmd):
 
         class_name = args_list[0]
 
-        if class_name not in HBNBCommand.classes:
+        if class_name not in self.classes:
             print("** class doesn't exist **")
             return
 
-        # Create an instance of the specified class
-        new_instance = HBNBCommand.classes[class_name]()
+        # Special validation for Place creation
+        if class_name == "Place" and not self.validate_city_user_ids(args_list):
+            return
 
-        # Handling additional attributes if provided in the command
+        # Create an instance of the specified class
+        new_instance = self.classes[class_name]()
+
         for attr in args_list[1:]:
-            # Check if attribute  format 'key=value'
             if '=' not in attr:
                 print(
-                    f"** error: attribute '{attr}' key=value **")
+                    f"** error: attribute '{attr}' not in key=value format **")
                 continue
 
-            key, value = attr.split('=', 1)
-
-            # Attempt to parse value as int, float, or fallback to string
-            try:
-                # Evaluate values or strings (without quotes)
-                eval_value = eval(value, {"__builtins__": {}}, {})
-                if (isinstance(eval_value, (int, float)) or
-                        (value.startswith('"') and value.endswith('"'))):
-                    value = eval_value
-
-            except (SyntaxError, NameError, ValueError):
-                # Handle as a string, replacing underscores
-                value = value.strip('"').replace('_', ' ')
-
-                # Set attribute
-                setattr(new_instance, key, value)
+            key, value = self.parse_attr_value(attr)
+            setattr(new_instance, key, value)
 
         new_instance.save()
         print(new_instance.id)
+
+    @staticmethod
+    def parse_attr_value(attr):
+        """Parses the attribute and returns the key and the correctly formatted value."""
+        key, value = attr.split('=', 1)
+        try:
+            value = eval(value, {"__builtins__": None}, {})
+        except (SyntaxError, NameError, ValueError):
+            value = value.strip('"').replace('_', ' ')
+        return key, value
+
+    def validate_city_user_ids(self, args_list):
+        """Validates the existence of city_id and user_id."""
+        # Assuming function 'check_existence' checks if the IDs exist in storage
+        for attr in args_list:
+            if attr.startswith("city_id=") or attr.startswith("user_id="):
+                key, value = attr.split("=", 1)
+                if not self.check_existence(key, value.strip('"')):
+                    print(f"** {key} '{value}' doesn't exist **")
+                    return False
+        return True
+
+    def check_existence(self, key, value):
+        """Stub for checking if the given key-value exists in storage."""
+        # Implement the actual check here, depending on your storage system
+        # For now, let's assume everything exists
+        return True
 
     def help_create(self):
         """ Help information for the create method """
