@@ -187,6 +187,22 @@ class TestHBNBCommand(unittest.TestCase):
             HBNBCommand().onecmd('show City {}'.format(mdl_id))
             self.assertIn('name="Texas"', cout.getvalue())
 
+
+class TestCreateWithParams(unittest.TestCase):
+    """Tests for creating objects with parameters via the console."""
+
+    def test_create_with_params(self):
+        """Test object creation with parameters."""
+        with patch('sys.stdout', new_callable=StringIO) as mock_output:
+            cmd = 'create State name="TestState" Population=1000000'
+            HBNBCommand().onecmd(cmd)
+            state_id = mock_output.getvalue().strip()
+            self.assertTrue(state_id)
+
+            # Verify the State was created with the specified parameters
+            state = storage.all()["State." + state_id]
+            self.assertEqual(state.name, "TestState")
+            self.assertEqual(state.Population, 1000000)
 # Below are the added DBStorage tests
 
 
@@ -270,22 +286,6 @@ def ensure_user_deletion(self, user_id):
 
     # Ensure the User object is no longer present
     self.assertNotIn(f'User.{user_id}', storage.all().keys())
-
-
-class TestCreateWithParams(unittest.TestCase):
-
-    def test_create_with_params(self):
-        """Test object creation with parameters."""
-        with patch('sys.stdout', new_callable=StringIO) as mock_output:
-            cmd = 'create State name="TestState" Population=1000000'
-            HBNBCommand().onecmd(cmd)
-            state_id = mock_output.getvalue().strip()
-            self.assertTrue(state_id)
-
-            # Verify the State was created with the specified parameters
-            state = storage.all()["State." + state_id]
-            self.assertEqual(state.name, "TestState")
-            self.assertEqual(state.Population, 1000000)
 
 
 if __name__ == "__main__":
