@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from models import get_storage
+import models  # Adjusted to import models module
 
 Base = declarative_base()
 
@@ -20,18 +20,18 @@ class BaseModel:
         for key, value in kwargs.items():
             if key != '__class__':
                 setattr(self, key, value)
+        # Initializing storage only once might be considered based on application design
+        self.storage = models.storage
 
     def save(self):
         """Saves the instance to storage."""
         self.updated_at = datetime.utcnow()
-        storage = get_storage()
-        storage.new(self)
-        storage.save()
+        self.storage.new(self)
+        self.storage.save()
 
     def delete(self):
         """Deletes the instance from storage."""
-        storage = get_storage()
-        storage.delete(self)
+        self.storage.delete(self)
 
     def to_dict(self):
         """Convert instance into dict format."""
@@ -46,5 +46,4 @@ class BaseModel:
     @classmethod
     def close(cls):
         """Call remove() method on the private (if DBStorage)."""
-        from models import storage
-        storage.close()
+        models.storage.close()
