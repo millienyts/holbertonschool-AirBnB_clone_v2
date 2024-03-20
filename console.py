@@ -128,7 +128,7 @@ class HBNBCommand(cmd.Cmd):
 
         if class_name == "City":
             if len(args_list) == 1:
-                print("** instance of 'City' must have a state_id and a name **")
+                print("** instatate_id and a name **")
                 return
             # Extract state_id and name from args_list
             state_id, name = None, None
@@ -140,7 +140,7 @@ class HBNBCommand(cmd.Cmd):
 
             # Validate state_id and name
             if not state_id or not name:
-                print("** instance of 'City' must have a state_id and a name **")
+                print("** instancand a name **")
                 return
             if not self.validate_city_user_ids(state_id, None):
                 print("** no state found with id: {} **".format(state_id))
