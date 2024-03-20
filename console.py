@@ -167,7 +167,7 @@ class HBNBCommand(cmd.Cmd):
                 return
             if not self.validate_city_user_ids(attributes["state_id"], None):
                 print(
-                    "** no state found with id: {} **".format(attributes["state_id"]))
+                    "** no state  id: {} **".format(attributes["state_id"]))
                 return
         new_instance = self.classes[class_name](**attributes)
         new_instance.save()

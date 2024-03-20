@@ -5,18 +5,27 @@ depending on the environment variable HBNB_TYPE_STORAGE.
 """
 
 import os
-from models.engine.file_storage import FileStorage
-from models.engine.db_storage import DBStorage
 
-# Determine the storage type to use based on the HBNB_TYPE_STORAGE environment variable
-storage_type = os.getenv('HBNB_TYPE_STORAGE')
+storage = None
 
-if storage_type == 'db':
-    # If the environment variable is 'db', use the DBStorage class
-    storage = DBStorage()
-else:
-    # Otherwise (including when the environment variable is not set), use FileStorage
-    storage = FileStorage()
 
-# Regardless of the storage type, call reload to initialize the storage system
-storage.reload()
+def get_storage():
+    """Function to initialize and return the storage instance."""
+    global storage
+    if storage is not None:
+        return storage
+
+    from models.engine.file_storage import FileStorage
+    from models.engine.db_storage import DBStorage
+
+    HBNB_TYPE_STORAGE = os.getenv('HBNB_TYPE_STORAGE')
+    if HBNB_TYPE_STORAGE == 'db':
+        storage = DBStorage()
+    else:
+        storage = FileStorage()
+    storage.reload()
+    return storage
+
+
+# Call get_storage() to initialize storage for  comp
+storage = get_storage()

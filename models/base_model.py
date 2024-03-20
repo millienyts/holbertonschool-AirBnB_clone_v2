@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from models import get_storage
 
 Base = declarative_base()
 
@@ -14,29 +15,22 @@ class BaseModel:
 
     def __init__(self, *args, **kwargs):
         """Instantiates a new model."""
-        self.id = kwargs.get('id', str(uuid.uuid4()))
-        now = datetime.utcnow()
-        self.created_at = kwargs.get('created_at', now)
-        self.updated_at = kwargs.get('updated_at', now)
-
+        self.id = str(uuid.uuid4())
+        self.created_at = self.updated_at = datetime.utcnow()
         for key, value in kwargs.items():
-            if key not in ('id', 'created_at', 'updated_at', '__class__'):
+            if key != '__class__':
                 setattr(self, key, value)
 
-    def __str__(self):
-        """Returns a string representation of the instance."""
-        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
-
     def save(self):
-        """Updates updated_at with current time when instance is changed."""
+        """Saves the instance to storage."""
         self.updated_at = datetime.utcnow()
-        from models import storage
+        storage = get_storage()
         storage.new(self)
         storage.save()
 
     def delete(self):
-        """Delete the current instance from the storage."""
-        from models import storage
+        """Deletes the instance from storage."""
+        storage = get_storage()
         storage.delete(self)
 
     def to_dict(self):
