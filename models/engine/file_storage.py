@@ -50,7 +50,7 @@ class FileStorage:
             pass
 
     def delete(self, obj=None):
-        """Deletes obj from __objects if it’s inside - if obj is None, the method should not do anything"""
+        """Deletes obj from __objects"""
         if obj:
             key = f"{obj.__class__.__name__}.{obj.id}"
             if key in self.__objects:
@@ -60,3 +60,38 @@ class FileStorage:
     def close(self):
         """Call reload() method for deserializing the JSON file to objects."""
         self.reload()
+
+# Assuming cmd is your command line interface object
+# and FileStorage is correctly set up and integrated
+
+
+def execute_command(command, storage):
+    if command.startswith("create"):
+        parts = command.split()
+        model_name = parts[1]
+        attributes = " ".join(parts[2:])
+        model_class = globals().get(model_name)
+
+        if model_class:
+            instance = model_class()
+            for attr in attributes.split(","):
+                key, val = attr.split("=")
+                setattr(instance, key, val.strip('"'))
+            storage.new(instance)
+            storage.save()
+            print(f"New ID: {instance.id}")
+        else:
+            print(f"Model {model_name} not found")
+
+
+storage = FileStorage()
+storage.reload()
+
+# Example usage
+commands = [
+    'create State name="California"',
+    # Add other commands as per your tests
+]
+
+for command in commands:
+    execute_command(command, storage)
