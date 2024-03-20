@@ -7,15 +7,18 @@ from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from os import getenv
 
-# Define the association table for a many-to-many relationship between Place and Amenity
-place_amenity = Table('place_amenity', Base.metadata,
-                      Column('place_id', String(60), ForeignKey(
-                          'places.id'), primary_key=True, nullable=False),
-                      Column('amenity_id', String(60), ForeignKey('amenities.id'), primary_key=True, nullable=False))
+# Association table for Place-Amenity many-to-many relationship
+place_amenity = Table(
+    'place_amenity', Base.metadata,
+    Column('place_id', String(60), ForeignKey('places.id'), primary_key=True,
+           nullable=False),
+    Column('amenity_id', String(60), ForeignKey('amenities.id'),
+           primary_key=True, nullable=False)
+)
 
 
 class Place(BaseModel, Base):
-    """ A place to stay """
+    """A place to stay"""
     __tablename__ = 'places'
     city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
@@ -28,43 +31,25 @@ class Place(BaseModel, Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
 
-    # Relationship with User
     user = relationship("User", back_populates="places")
+    amenities = relationship(
+        "Amenity", secondary=place_amenity,
+        back_populates="place_amenities", viewonly=False
+    )
 
-    # For DBStorage: Defines the many-to-many relationship between Place and Amenity
-    amenities = relationship("Amenity", secondary=place_amenity,
-                             back_populates="place_amenities", viewonly=False)
-
-    # For FileStorage: Define amenity_ids as a list of Amenity.id
     if getenv('HBNB_TYPE_STORAGE') != 'db':
         @property
         def amenities(self):
-            """Returns the list of Amenity instances from amenity_ids"""
+            """Returns list of Amenity instances"""
             from models import storage
             from models.amenity import Amenity
-            amenity_list = []
-            for amenity_id in self.amenity_ids:
-                amenity = storage.all(Amenity).get(
-                    'Amenity.{}'.format(amenity_id))
-                if amenity:
-                    amenity_list.append(amenity)
-            return amenity_list
+            return [amenity for amenity_id in self.amenity_ids
+                    for amenity in storage.all(Amenity).values()
+                    if amenity.id == amenity_id]
 
         @amenities.setter
         def amenities(self, obj):
-            """Adds an Amenity.id to the amenity_ids list"""
+            """Appends Amenity.id to the list"""
             if type(obj).__name__ == 'Amenity':
-                if hasattr(self, 'amenity_ids'):
-                    self.amenity_ids.append(obj.id)
-                else:
-                    self.amenity_ids = [obj.id]
-
-# Ensure the relationship is set up in Amenity model too
-
-
-class Amenity(BaseModel, Base):
-    """ Amenity model """
-    __tablename__ = 'amenities'
-    name = Column(String(128), nullable=False)
-    place_amenities = relationship(
-        "Place", secondary=place_amenity, back_populates="amenities", viewonly=False)
+                self.amenity_ids = getattr(self, 'amenity_ids', [])
+                self.amenity_ids.append(obj.id)

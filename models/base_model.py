@@ -45,6 +45,6 @@ class BaseModel:
 
     @classmethod
     def close(cls):
-        """Call remove() method on the private session attribute (if DBStorage)."""
+        """Call remove() method on the private (if DBStorage)."""
         from models import storage
         storage.close()
