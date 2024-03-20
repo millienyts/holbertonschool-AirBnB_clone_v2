@@ -27,15 +27,18 @@ class DBStorage:
             Base.metadata.drop_all(bind=self.__engine)
 
     def all(self, cls=None):
-        objs = []
-        if cls is not None:
-            objs = self.__session.query(cls).all()
+        """Query all objects of a specific class or all classes if cls=None."""
+        objs = {}
+        if cls:
+            cls = DBStorage.classes().get(cls, cls)  # Dynamic class resolution
+            objs.update({f'{type(obj).__name__}.{
+                        obj.id}': obj for obj in self.__session.query(cls).all()})
         else:
-            classes = [State, City, User, Place, Amenity, Review]
-            for cls in classes:
-                objs.extend(self.__session.query(cls).all())
-
-        return {f'{type(obj).__name__}.{obj.id}': obj for obj in objs}
+            for cls in Base.__subclasses__():  # Dynamically fetch subclasses of Base
+                cls_name = cls.__name__
+                objs.update(
+                    {f'{cls_name}.{obj.id}': obj for obj in self.__session.query(cls).all()})
+        return objs
 
     def new(self, obj):
         self.__session.add(obj)
@@ -49,10 +52,14 @@ class DBStorage:
 
     def reload(self):
         Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine,
-                                       expire_on_commit=False)
+        session_factory = sessionmaker(
+            bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
+
+    def close(self):
+        """Close the session."""
+        self.__session.close()
 
     @staticmethod
     def classes():
@@ -64,21 +71,3 @@ class DBStorage:
             "Place": Place,
             "Review": Review
         }
-
-    def close(self):
-        """Close the session."""
-        self.__session.close()
-
-    def all(self, cls=None):
-        """Query all objects of a specific class or all classes if cls=None."""
-        objs = {}
-        if cls:
-            cls = self.classes().get(cls, cls)  # Dynamic class resolution
-            objs.update({f'{type(obj).__name__}.{
-                        obj.id}': obj for obj in self.__session.query(cls).all()})
-        else:
-            for cls in Base.__subclasses__():  # Dynamically fetch subclasses of Base
-                cls_name = cls.__name__
-                objs.update(
-                    {f'{cls_name}.{obj.id}': obj for obj in self.__session.query(cls).all()})
-        return objs
