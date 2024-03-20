@@ -16,20 +16,22 @@ class test_fileStorage(unittest.TestCase):
     # Existing setup, teardown, and test methods
 
     def test_do_create_with_parameters(self):
-        """Test creating an object via the console with initial parameters."""
+        """Test 'create' command with parameters."""
+        # Create a new BaseModel with name and number parameters
+        cmd = 'create BaseModel name="Test" number=100'
         with patch('sys.stdout', new_callable=StringIO) as mocked_stdout:
-            command = 'create BaseModel name="Test" number=100'
-            HBNBCommand().onecmd(command)
+            HBNBCommand().onecmd(cmd)
             obj_id = mocked_stdout.getvalue().strip()
             self.assertTrue(obj_id)
-            
-            obj_key = f"BaseModel.{obj_id}"
-            self.assertIn(obj_key, storage.all())
-            
-            obj = storage.all()[obj_key]
-            self.assertEqual(obj.name, "Test")
-            self.assertEqual(obj.number, 100)
-            
+
+        # Verify the object exists in storage and check its attributes
+        obj_key = f"BaseModel.{obj_id}"
+        self.assertIn(obj_key, storage.all().keys())
+
+        obj = storage.all()[obj_key]
+        self.assertEqual(obj.name, "Test")
+        self.assertEqual(obj.number, 100)
+
     def setUp(self):
         """ Set up test environment """
         del_list = []
@@ -128,6 +130,7 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
-        
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -155,6 +155,20 @@ class HBNBCommand(cmd.Cmd):
             except ValueError:
                 continue  # Skip invalid arguments
 
+    # Special validation for State and City creation
+        if class_name == "State":
+            if "name" not in attributes:
+                print("** name is missing **")
+                return
+
+        if class_name == "City":
+            if "state_id" not in attributes or "name" not in attributes:
+                print("** state_id or name is missing **")
+                return
+            if not self.validate_city_user_ids(attributes["state_id"], None):
+                print(
+                    "** no state found with id: {} **".format(attributes["state_id"]))
+                return
         new_instance = self.classes[class_name](**attributes)
         new_instance.save()
         print(new_instance.id)
