@@ -112,7 +112,7 @@ class HBNBCommand(cmd.Cmd):
         """Create an object of any class with optional attributes."""
         args_list = shlex.split(args)
 
-        if len(args_list) == 0:
+        if not args_list:
             print("** class name missing **")
             return
 
@@ -121,78 +121,48 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
-        # Check for class-specific creation requirements
-        if class_name == "State" and len(args_list) == 1:
-            print("** instance of 'State' must have a name **")
-            return
-
-        if class_name == "City":
-            if len(args_list) == 1:
-                print("** instatate_id and a name **")
-                return
-            # Extract state_id and name from args_list
-            state_id, name = None, None
-            for arg in args_list[1:]:
-                if arg.startswith("state_id="):
-                    state_id = arg.split("=", 1)[1].strip('"')
-                if arg.startswith("name="):
-                    name = arg.split("=", 1)[1].strip('"')
-
-            # Validate state_id and name
-            if not state_id or not name:
-                print("** instancand a name **")
-                return
-            if not self.validate_city_user_ids(state_id, None):
-                print("** no state found with id: {} **".format(state_id))
-                return
-
+        # Initialize a dictionary to hold key-value pairs for attributes
         attributes = {}
         for arg in args_list[1:]:
             try:
-                key, value = self.parse_create_argument(arg)
-                if key and value is not None:
-                    attributes[key] = value
+                key, value = arg.split("=", 1)
+                # Convert value to the correct type
+                if value.startswith('"') and value.endswith('"'):
+                    value = value.strip('"').replace('_', ' ')
+                elif '.' in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+                attributes[key] = value
             except ValueError:
-                continue  # Skip invalid arguments
-
-    # Special validation for State and City creation
-        if class_name == "State":
-            if "name" not in attributes:
-                print("** name is missing **")
+                print("** error processing attribute: {} **".format(arg))
                 return
 
+        # Check for required attributes for specific classes, if applicable
+        if class_name == "State" and 'name' not in attributes:
+            print("** instance of 'State' must have a name **")
+            return
+
+        # Additional validation for City creation
         if class_name == "City":
             if "state_id" not in attributes or "name" not in attributes:
-                print("** state_id or name is missing **")
+                print("** state_id and name are required for City **")
                 return
-            if not self.validate_city_user_ids(attributes["state_id"], None):
+            if not self.validate_city_state_id(attributes["state_id"]):
                 print(
-                    "** no state  id: {} **".format(attributes["state_id"]))
+                    "** no state found with id: {} **".format(attributes["state_id"]))
                 return
+
+        # Create the instance with dynamic attributes
         new_instance = self.classes[class_name](**attributes)
         new_instance.save()
         print(new_instance.id)
 
-    def parse_create_argument(self, arg):
-        """Parses an argument and returns a key-value pair."""
-        parts = arg.split('=', 1)
-        if len(parts) != 2:
-            raise ValueError("Invalid argument format")
-
-        key, value_str = parts
-        # Strip leading and trailing double quotes for strings
-        if value_str.startswith('"') and value_str.endswith('"'):
-            value = value_str.strip('"').replace('_', ' ').replace('\\"', '"')
-        else:
-            # Attempt to parse as integer or float
-            try:
-                value = int(value_str)
-            except ValueError:
-                try:
-                    value = float(value_str)
-                except ValueError:
-                    raise ValueError("Invalid value type")
-        return key, value
+    def validate_city_state_id(self, state_id):
+        """Validate the existence of state_id in DB or file storage."""
+        # Implementation depends on the storage system in use
+        # This is a placeholder function; you need to implement it based on your storage system
+        return True
     # Add or modify other methods as necessary...
 
     def validate_city_user_ids(self, city_id, user_id):
