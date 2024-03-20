@@ -121,6 +121,31 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
+        # Check for class-specific creation requirements
+        if class_name == "State" and len(args_list) == 1:
+            print("** instance of 'State' must have a name **")
+            return
+
+        if class_name == "City":
+            if len(args_list) == 1:
+                print("** instance of 'City' must have a state_id and a name **")
+                return
+            # Extract state_id and name from args_list
+            state_id, name = None, None
+            for arg in args_list[1:]:
+                if arg.startswith("state_id="):
+                    state_id = arg.split("=", 1)[1].strip('"')
+                if arg.startswith("name="):
+                    name = arg.split("=", 1)[1].strip('"')
+
+            # Validate state_id and name
+            if not state_id or not name:
+                print("** instance of 'City' must have a state_id and a name **")
+                return
+            if not self.validate_city_user_ids(state_id, None):
+                print("** no state found with id: {} **".format(state_id))
+                return
+
         attributes = {}
         for arg in args_list[1:]:
             try:
