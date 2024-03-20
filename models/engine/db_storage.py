@@ -64,3 +64,21 @@ class DBStorage:
             "Place": Place,
             "Review": Review
         }
+
+    def close(self):
+        """Close the session."""
+        self.__session.close()
+
+    def all(self, cls=None):
+        """Query all objects of a specific class or all classes if cls=None."""
+        objs = {}
+        if cls:
+            cls = self.classes().get(cls, cls)  # Dynamic class resolution
+            objs.update({f'{type(obj).__name__}.{
+                        obj.id}': obj for obj in self.__session.query(cls).all()})
+        else:
+            for cls in Base.__subclasses__():  # Dynamically fetch subclasses of Base
+                cls_name = cls.__name__
+                objs.update(
+                    {f'{cls_name}.{obj.id}': obj for obj in self.__session.query(cls).all()})
+        return objs
