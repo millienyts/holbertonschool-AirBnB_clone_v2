@@ -1,53 +1,53 @@
-#!/usr/bin/python3
-"""
-Place Module for HBNB project
-"""
-from models.base_model import BaseModel, Base
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
-from sqlalchemy.orm import relationship
-from os import getenv
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from models import storage
 
-# Association table for Place-Amenity many-to-many relationship
-place_amenity = Table(
-    'place_amenity', Base.metadata,
-    Column('place_id', String(60), ForeignKey(
-        'places.id'), primary_key=True, nullable=False),
-    Column('amenity_id', String(60), ForeignKey(
-        'amenities.id'), primary_key=True, nullable=False)
-)
+Base = declarative_base()
 
 
-class Place(BaseModel, Base):
-    """A place to stay."""
-    __tablename__ = 'places'
-    # Columns definition
-    city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
-    user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
-    # Other columns...
+class BaseModel:
+    """A base class for all hbnb models"""
+    id = Column(String(60), primary_key=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    # SQLAlchemy relationships
-    user = relationship("User", back_populates="places")
-    reviews = relationship("Review", back_populates="place",
-                           cascade="all, delete-orphan")
+    def __init__(self, *args, **kwargs):
+        """Instantiates a new model"""
+        self.id = kwargs.get('id', str(uuid.uuid4()))
+        now = datetime.utcnow()
+        self.created_at = kwargs.get('created_at', now)
+        self.updated_at = kwargs.get('updated_at', now)
 
-    # Many-to-many relationship for DBStorage
-    amenities = relationship(
-        "Amenity", secondary=place_amenity, back_populates="places", viewonly=False)
+        for key, value in kwargs.items():
+            if key not in ('id', 'created_at', 'updated_at', '__class__'):
+                setattr(self, key, value)
 
-    if getenv('HBNB_TYPE_STORAGE') != 'db':
-        # FileStorage relationship handling
-        @property
-        def amenities(self):
-            """FileStorage: Returns list of Amenity instances."""
-            from models import storage
-            from models.amenity import Amenity
-            amenity_list = storage.all(Amenity).values()
-            return [amenity for amenity in amenity_list if amenity.id in self.amenity_ids]
+    def __str__(self):
+        """Returns a string representation of the instance"""
+        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
 
-        @amenities.setter
-        def amenities(self, obj):
-            """FileStorage: Appends Amenity.id to the list."""
-            if type(obj).__name__ == 'Amenity':
-                if not hasattr(self, 'amenity_ids'):
-                    self.amenity_ids = []
-                self.amenity_ids.append(obj.id)
+    def save(self):
+        """Updates updated_at with current time when instance is changed"""
+        self.updated_at = datetime.utcnow()
+        storage.new(self)
+        storage.save()
+
+    def delete(self):
+        """Delete the current instance from the storage"""
+        storage.delete(self)
+
+    def to_dict(self):
+        """Convert instance into dict format"""
+        my_dict = self.__dict__.copy()
+        my_dict['__class__'] = self.__class__.__name__
+        my_dict.pop('_sa_instance_state', None)
+        my_dict['created_at'] = self.created_at.isoformat()
+        my_dict['updated_at'] = self.updated_at.isoformat()
+        return my_dict
+
+    @classmethod
+    def close(cls):
+        """Call remove() method on the private session attribute (if DBStorage)"""
+        storage.close()
