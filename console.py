@@ -138,25 +138,25 @@ class HBNBCommand(cmd.Cmd):
                 print("** error processing attribute: {} **".format(arg))
                 return
 
-        # Check for required attributes for specific classes, if applicable
-        if class_name == "State" and 'name' not in attributes:
-            print("** instance of 'State' must have a name **")
-            return
-
-        # Additional validation for City creation
+        # Additional validation for City creation with state_id
         if class_name == "City":
-            if "state_id" not in attributes or "name" not in attributes:
-                print("** state_id and name are required for City **")
+            if 'state_id' not in attributes:
+                print("** instance of 'City' must have a 'state_id' **")
                 return
-            if not self.validate_city_state_id(attributes["state_id"]):
+            elif not self.validate_state_id(attributes['state_id']):
                 print(
-                    "** no state found with id: {} **".format(attributes["state_id"]))
+                    "** no state found with id: {} **".format(attributes['state_id']))
                 return
 
         # Create the instance with dynamic attributes
         new_instance = self.classes[class_name](**attributes)
         new_instance.save()
         print(new_instance.id)
+
+    def validate_state_id(self, state_id):
+        """Validate the existence of state_id in the storage."""
+        states = self.classes['State'].all()
+        return any(state.id == state_id for state in states.values())
 
     def validate_city_state_id(self, state_id):
         """Validate the existence of state_id in DB or file storage."""
