@@ -141,7 +141,7 @@ class HBNBCommand(cmd.Cmd):
     def validate_city_state_id(self, state_id):
         """Validate the existence of state_id in DB or file storage."""
         # Implementation depends on the storage system in use
-        # This is a placeholder function; you need to implement it based on your storage system
+        # This is a placeholder function;
         return True
     # Add or modify other methods as necessary...
 
