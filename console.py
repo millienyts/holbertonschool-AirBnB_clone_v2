@@ -110,48 +110,28 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """Create an object of any class with optional attributes."""
-        args_list = shlex.split(args)
+        parts = args.split()
+        if parts and len(parts) > 1:
+            model_name = parts[0]
+            attributes = " ".join(parts[1:])
+            model_class = self.classes.get(model_name)
 
-        if not args_list:
+            if model_class:
+                kwargs = {}
+                if attributes:
+                    # Process attributes into key-value pairs
+                    for attr in attributes.split(","):
+                        key, val = attr.split("=")
+                        # Remove extra quotation marks from string values
+                        kwargs[key] = val.strip('"')
+                # Create instance using keyword arguments
+                instance = model_class(**kwargs)
+                instance.save()
+                print(f"New ID: {instance.id}")
+            else:
+                print(f"** class doesn't exist **")
+        else:
             print("** class name missing **")
-            return
-
-        class_name = args_list[0]
-        if class_name not in self.classes:
-            print("** class doesn't exist **")
-            return
-
-        # Initialize a dictionary to hold key-value pairs for attributes
-        attributes = {}
-        for arg in args_list[1:]:
-            try:
-                key, value = arg.split("=", 1)
-                # Convert value to the correct type
-                if value.startswith('"') and value.endswith('"'):
-                    value = value.strip('"').replace('_', ' ')
-                elif '.' in value:
-                    value = float(value)
-                else:
-                    value = int(value)
-                attributes[key] = value
-            except ValueError:
-                print("** error processing attribute: {} **".format(arg))
-                return
-
-        # Additional validation for City creation with state_id
-        if class_name == "City":
-            if 'state_id' not in attributes:
-                print("** instance of 'City' must have a 'state_id' **")
-                return
-            elif not self.validate_state_id(attributes['state_id']):
-                print(
-                    "** no state found with id: {} **".format(attributes['state_id']))
-                return
-
-        # Create the instance with dynamic attributes
-        new_instance = self.classes[class_name](**attributes)
-        new_instance.save()
-        print(new_instance.id)
 
     def validate_state_id(self, state_id):
         """Validate the existence of state_id in the storage."""
