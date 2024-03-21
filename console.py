@@ -122,16 +122,23 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
-        if class_name == "State" and not any(arg.startswith("name=") for arg in args_list[1:]):
-            print("** attribute name is missing **")
-            return
+        # Specific validation for User class
+        if class_name == "User":
+            # Check for email and password in arguments
+            has_email = any(arg.startswith("email=") for arg in args_list)
+            has_password = any(arg.startswith("password=")
+                               for arg in args_list)
+            if not has_email or not has_password:
+                print("** User object requires email and password **")
+                return
 
+        # Parse kwargs from args
         kwargs = {}
         for arg in args_list[1:]:
             try:
                 key, value = arg.split("=", 1)
                 if value[0] == '"' and value[-1] == '"':
-                    value = value[1:-1].replace('_', ' ').replace('\"', '"')
+                    value = value[1:-1].replace('_', ' ').replace('\\"', '"')
                 elif '.' in value:
                     value = float(value)
                 else:
@@ -140,11 +147,12 @@ class HBNBCommand(cmd.Cmd):
             except ValueError:
                 continue  # Skip invalid format
 
+        # Create the instance
         instance = self.classes[class_name](**kwargs)
         instance.save()
         print(instance.id)
         storage.new(instance)
-        storage.save()  # Commit changes to the database
+        storage.save()
 
     def validate_state_id(self, state_id):
         """Validate the existence of state_id in the storage."""
