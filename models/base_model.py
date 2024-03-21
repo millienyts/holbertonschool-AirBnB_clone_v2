@@ -45,8 +45,10 @@ class BaseModel:
         my_dict['__class__'] = self.__class__.__name__
         if '_sa_instance_state' in my_dict:
             del my_dict['_sa_instance_state']
-        my_dict['created_at'] = my_dict['created_at'].isoformat()
-        my_dict['updated_at'] = my_dict['updated_at'].isoformat()
+        # Ensure created_at and updated_at are datetime objects
+        for key in ['created_at', 'updated_at']:
+            if isinstance(my_dict[key], datetime):
+                my_dict[key] = my_dict[key].isoformat()
         return my_dict
 
     @classmethod

@@ -16,47 +16,45 @@ if getenv('HBNB_TYPE_STORAGE') == 'db':
 
 class Place(BaseModel, Base):
     __tablename__ = 'places'
-    # Column definitions
-    # (Keep as is from your provided snippet...)
+    city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
+    user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
+    name = Column(String(128), nullable=False)
+    description = Column(String(1024), nullable=True)
+    number_rooms = Column(Integer, default=0, nullable=False)
+    number_bathrooms = Column(Integer, default=0, nullable=False)
+    max_guest = Column(Integer, default=0, nullable=False)
+    price_by_night = Column(Integer, default=0, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="places")
     reviews = relationship("Review", back_populates="place",
                            cascade="all, delete-orphan")
 
+    # Adjust for DBStorage
     if getenv('HBNB_TYPE_STORAGE') == 'db':
         amenities = relationship(
-            "Amenity", secondary=place_amenity, back_populates="places", viewonly=False)
-    else:
-        @property
-        def reviews(self):
-            """FileStorage: Getter for reviews."""
-            from models import storage
-            from models.review import Review
-            return [review for review in storage.all(Review).values() if review.place_id == self.id]
+            "Amenity", secondary="place_amenity", back_populates="places", viewonly=False)
 
-        @property
-        def amenities(self):
-            """FileStorage: Getter for amenities."""
+    # FileStorage specific properties
+    amenity_ids = []
+
+    @property
+    def amenities(self):
+        """FileStorage: Getter for amenities."""
+        if getenv('HBNB_TYPE_STORAGE') != 'db':
             from models import storage
             from models.amenity import Amenity
             return [amenity for amenity in storage.all(Amenity).values() if amenity.id in self.amenity_ids]
+        else:
+            return self._amenities
 
-        @amenities.setter
-        def amenities(self, obj):
-            """FileStorage: Setter for adding an Amenity ID to the amenity list."""
+    @amenities.setter
+    def amenities(self, obj):
+        """FileStorage: Setter for adding an Amenity ID to the amenity list."""
+        if getenv('HBNB_TYPE_STORAGE') != 'db':
             if not hasattr(self, 'amenity_ids'):
                 self.amenity_ids = []
             if obj.id not in self.amenity_ids:
                 self.amenity_ids.append(obj.id)
-    # Adjust the relationship for 'reviews' to ensure it works with FileStorage
-    if getenv('HBNB_TYPE_STORAGE') == 'db':
-        reviews = relationship(
-            "Review", back_populates="place", cascade="all, delete-orphan")
-    else:
-        @property
-        def reviews(self):
-            """FileStorage: Getter for reviews"""
-            from models import storage
-            from models.review import Review
-            return [review for review in storage.all(Review).values() if review.place_id == self.id]

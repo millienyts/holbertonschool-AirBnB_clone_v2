@@ -8,7 +8,6 @@ from sqlalchemy.orm import relationship
 
 
 class User(BaseModel, Base):
-    """This class defines a user by various attributes."""
     __tablename__ = 'users'
     email = Column(String(128), nullable=False)
     password = Column(String(128), nullable=False)
@@ -17,5 +16,6 @@ class User(BaseModel, Base):
 
     # Relationships
     places = relationship("Place", back_populates="user",
-                          cascade="all, delete")
-    reviews = relationship("Review", back_populates="user")
+                          cascade="all, delete-orphan")
+    reviews = relationship("Review", back_populates="user",
+                           cascade="all, delete-orphan")
