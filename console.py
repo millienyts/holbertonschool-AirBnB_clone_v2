@@ -110,28 +110,36 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """Create an object of any class with optional attributes."""
-        parts = args.split()
-        if parts and len(parts) > 1:
-            model_name = parts[0]
-            attributes = " ".join(parts[1:])
-            model_class = self.classes.get(model_name)
-
-            if model_class:
-                kwargs = {}
-                if attributes:
-                    # Process attributes into key-value pairs
-                    for attr in attributes.split(","):
-                        key, val = attr.split("=")
-                        # Remove extra quotation marks from string values
-                        kwargs[key] = val.strip('"')
-                # Create instance using keyword arguments
-                instance = model_class(**kwargs)
-                instance.save()
-                print(f"New ID: {instance.id}")
-            else:
-                print(f"** class doesn't exist **")
-        else:
+        args_list = shlex.split(args)
+        if len(args_list) < 1:
             print("** class name missing **")
+            return
+
+        class_name = args_list[0]
+        if class_name not in self.classes:
+            print("** class doesn't exist **")
+            return
+
+        kwargs = {}
+        for arg in args_list[1:]:
+            key, value = arg.split('=')
+            if value[0] == '"' and value[-1] == '"':
+                value = value.strip('"').replace('_', ' ').replace('\"', '"')
+            elif '.' in value:
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue
+            else:
+                try:
+                    value = int(value)
+                except ValueError:
+                    continue
+            kwargs[key] = value
+
+        instance = self.classes[class_name](**kwargs)
+        instance.save()
+        print(instance.id)
 
     def validate_state_id(self, state_id):
         """Validate the existence of state_id in the storage."""
