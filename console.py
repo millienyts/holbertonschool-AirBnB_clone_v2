@@ -11,6 +11,8 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
+import os
+os.environ['HBNB_TYPE_STORAGE'] = 'file'
 
 
 class HBNBCommand(cmd.Cmd):
