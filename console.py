@@ -109,37 +109,51 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """Create an object of any class with optional attributes."""
+        """Create an object of any class."""
+        if not args:
+            print("** class name missing **")
+            return
+
         args_list = shlex.split(args)
-        if len(args_list) < 1:
+        if len(args_list) == 0:
             print("** class name missing **")
             return
 
         class_name = args_list[0]
-        if class_name not in self.classes:
+        if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
         kwargs = {}
         for arg in args_list[1:]:
-            key, value = arg.split('=')
-            if value[0] == '"' and value[-1] == '"':
-                value = value.strip('"').replace('_', ' ').replace('\"', '"')
-            elif '.' in value:
-                try:
-                    value = float(value)
-                except ValueError:
-                    continue
-            else:
-                try:
-                    value = int(value)
-                except ValueError:
-                    continue
-            kwargs[key] = value
+            try:
+                key, value = arg.split("=", 1)
+                # Handle different value types
+                if value[0] == '"' and value[-1] == '"':
+                    # Strip double quotes and handle underscore as spaces
+                    value = value[1:-1].replace('_', ' ')
+                    # Handle escaped double quotes within the string
+                    value = value.replace('\\"', '"')
+                elif "." in value:
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        continue  # Skip invalid float values
+                else:
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        continue  # Skip invalid int values
+                kwargs[key] = value
+            except ValueError:
+                continue  # Skip invalid format
 
-        instance = self.classes[class_name](**kwargs)
-        instance.save()
-        print(instance.id)
+        # Create and save the new instance
+        new_instance = HBNBCommand.classes[class_name](**kwargs)
+        new_instance.save()
+        print(new_instance.id)
+        storage.new(new_instance)
+        storage.save()  # Commit changes to the database
 
     def validate_state_id(self, state_id):
         """Validate the existence of state_id in the storage."""

@@ -44,8 +44,9 @@ class FileStorage:
                 obj_dict = json.load(f)
             for obj_id, obj_data in obj_dict.items():
                 cls_name = obj_data['__class__']
-                cls = globals()[cls_name]
-                self.__objects[obj_id] = cls(**obj_data)
+                cls = globals().get(cls_name, None)
+                if cls:
+                    self.__objects[obj_id] = cls(**obj_data)
         except FileNotFoundError:
             pass
 
@@ -61,37 +62,32 @@ class FileStorage:
         """Call reload() method for deserializing the JSON file to objects."""
         self.reload()
 
-# Assuming cmd is your command line interface object
-# and FileStorage is correctly set up and integrated
-
 
 def execute_command(command, storage):
     if command.startswith("create"):
         parts = command.split()
-        model_name = parts[1]
-        attributes = " ".join(parts[2:])
-        model_class = globals().get(model_name)
+        model_name = parts[0] if len(parts) > 1 else None
+        attributes = parts[1:]
 
-        if model_class:
+        if model_name and model_name in globals():
+            model_class = globals()[model_name]
             instance = model_class()
-            for attr in attributes.split(","):
+            for attr in attributes:
                 key, val = attr.split("=")
-                setattr(instance, key, val.strip('"'))
-            storage.new(instance)
-            storage.save()
+                # Convert attribute value from string to correct type
+                if '"' in val:
+                    val = val.strip('"').replace('_', ' ')
+                elif '.' in val:
+                    val = float(val)
+                else:
+                    val = int(val)
+                setattr(instance, key, val)
+            instance.save()
             print(f"New ID: {instance.id}")
         else:
-            print(f"Model {model_name} not found")
+            print(
+                "** class doesn't exist **" if model_name else "** class name missing **")
 
 
 storage = FileStorage()
 storage.reload()
-
-# Example usage
-commands = [
-    'create State name="California"',
-    # Add other commands as per your tests
-]
-
-for command in commands:
-    execute_command(command, storage)
