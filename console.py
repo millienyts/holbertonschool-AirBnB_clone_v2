@@ -112,49 +112,38 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """Create an object of any class."""
-        if not args:
-            print("** class name missing **")
-            return
-
         args_list = shlex.split(args)
         if len(args_list) == 0:
             print("** class name missing **")
             return
 
         class_name = args_list[0]
-        if class_name not in HBNBCommand.classes:
+        if class_name not in self.classes:
             print("** class doesn't exist **")
+            return
+
+        if class_name == "State" and not any(arg.startswith("name=") for arg in args_list[1:]):
+            print("** attribute name is missing **")
             return
 
         kwargs = {}
         for arg in args_list[1:]:
             try:
                 key, value = arg.split("=", 1)
-                # Handle different value types
                 if value[0] == '"' and value[-1] == '"':
-                    # Strip double quotes and handle underscore as spaces
-                    value = value[1:-1].replace('_', ' ')
-                    # Handle escaped double quotes within the string
-                    value = value.replace('\\"', '"')
-                elif "." in value:
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        continue  # Skip invalid float values
+                    value = value[1:-1].replace('_', ' ').replace('\"', '"')
+                elif '.' in value:
+                    value = float(value)
                 else:
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        continue  # Skip invalid int values
+                    value = int(value)
                 kwargs[key] = value
             except ValueError:
                 continue  # Skip invalid format
 
-        # Create and save the new instance
-        new_instance = HBNBCommand.classes[class_name](**kwargs)
-        new_instance.save()
-        print(new_instance.id)
-        storage.new(new_instance)
+        instance = self.classes[class_name](**kwargs)
+        instance.save()
+        print(instance.id)
+        storage.new(instance)
         storage.save()  # Commit changes to the database
 
     def validate_state_id(self, state_id):
@@ -202,31 +191,23 @@ class HBNBCommand(cmd.Cmd):
         print("[Usage]: create <className>\n")
 
     def do_show(self, args):
-        """ Method to show an individual object """
-        new = args.partition(" ")
-        c_name = new[0]
-        c_id = new[2]
-
-        # guard against trailing args
-        if c_id and ' ' in c_id:
-            c_id = c_id.partition(' ')[0]
-
-        if not c_name:
+        """Method to show an individual object"""
+        args_list = shlex.split(args)
+        if len(args_list) == 0:
             print("** class name missing **")
             return
-
-        if c_name not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-
-        if not c_id:
+        if len(args_list) == 1:
             print("** instance id missing **")
             return
-
-        key = c_name + "." + c_id
-        try:
-            print(storage._FileStorage__objects[key])
-        except KeyError:
+        class_name, id = args_list[:2]
+        if class_name not in self.classes:
+            print("** class doesn't exist **")
+            return
+        all_objs = storage.all(self.classes[class_name])
+        key = f"{class_name}.{id}"
+        if key in all_objs:
+            print(all_objs[key])
+        else:
             print("** no instance found **")
 
     def help_show(self):
