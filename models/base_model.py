@@ -30,13 +30,13 @@ class BaseModel:
     def save(self):
         """Updates updated_at with current time when instance is changed"""
         self.updated_at = datetime.utcnow()
-        from models import storage  # Move import here to avoid circular imports
+        from models import storage
         storage.new(self)
         storage.save()
 
     def delete(self):
         """Delete the current instance from the storage"""
-        from models import storage  # Move import here to avoid circular imports
+        from models import storage
         storage.delete(self)
 
     def to_dict(self):
@@ -53,6 +53,6 @@ class BaseModel:
 
     @classmethod
     def close(cls):
-        """Calls remove() method on the private session attribute (if DBStorage)."""
+        """Calls remove() method(if DBStorage)."""
         from models import storage  # Import moved inside the method
         storage.close()
