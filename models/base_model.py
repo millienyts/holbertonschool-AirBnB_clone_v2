@@ -1,58 +1,67 @@
+#!/usr/bin/python3
+"""This module defines a base class for all models in our hbnb clone"""
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, DateTime
+
 
 Base = declarative_base()
 
 
 class BaseModel:
-    """A base class for all HBNB models."""
-    id = Column(String(60), primary_key=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    """A base class for all hbnb models"""
 
-    def __init__(self, **kwargs):
-        """Instantiates a new model."""
-        self.id = kwargs.get('id', str(uuid.uuid4()))
-        now = datetime.utcnow()
-        self.created_at = kwargs.get('created_at', now)
-        self.updated_at = kwargs.get('updated_at', now)
+    id = Column(String(60), primary_key=True, unique=True, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=(datetime.utcnow()))
+    updated_at = Column(DateTime, nullable=False, default=(datetime.utcnow()))
 
-        for key, value in kwargs.items():
-            if key not in ('id', 'created_at', 'updated_at', '__class__'):
-                setattr(self, key, value)
+    def __init__(self, *args, **kwargs):
+        """Instatntiates a new model"""
+        if kwargs:
+            for key, value in kwargs.items():
+                if key == "created_at" or key == "updated_at":
+                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+                if key != "__class__":
+                    setattr(self, key, value)
+            if "id" not in kwargs:
+                self.id = str(uuid.uuid4())
+            if "created_at" not in kwargs:
+                self.created_at = datetime.now()
+            if "updated_at" not in kwargs:
+                self.updated_at = datetime.now()
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = self.updated_at = datetime.now()
 
     def __str__(self):
-        """Returns a string representation of the instance."""
-        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
+        """Returns a string representation of the instance"""
+        cls = (str(type(self)).split('.')[-1]).split('\'')[0]
+        return '[{}] ({}) {}'.format(cls, self.id, self.__dict__)
 
     def save(self):
         """Updates updated_at with current time when instance is changed"""
-        self.updated_at = datetime.utcnow()
         from models import storage
+        self.updated_at = datetime.now()
         storage.new(self)
         storage.save()
 
+    def to_dict(self):
+        """Convert instance into dict format"""
+        dictionary = self.__dict__.copy()
+        if '_sa_instance_state' in dictionary:
+            del dictionary['_sa_instance_state']
+        dictionary.update({'__class__':
+                          (str(type(self)).split('.')[-1]).split('\'')[0]})
+        dictionary['created_at'] = self.created_at.isoformat()
+        dictionary['updated_at'] = self.updated_at.isoformat()
+        return dictionary
+
     def delete(self):
-        """Delete the current instance from the storage"""
+        """
+        Delete the current instance from the
+        storage by calling the delete method
+        """
+
         from models import storage
         storage.delete(self)
-
-    def to_dict(self):
-        """Converts instance into dict format for serialization."""
-        my_dict = self.__dict__.copy()
-        my_dict['__class__'] = self.__class__.__name__
-        if '_sa_instance_state' in my_dict:
-            del my_dict['_sa_instance_state']
-        # Ensure created_at and updated_at are datetime objects
-        for key in ['created_at', 'updated_at']:
-            if isinstance(my_dict[key], datetime):
-                my_dict[key] = my_dict[key].isoformat()
-        return my_dict
-
-    @classmethod
-    def close(cls):
-        """Calls remove() method(if DBStorage)."""
-        from models import storage  # Import moved inside the method
-        storage.close()
