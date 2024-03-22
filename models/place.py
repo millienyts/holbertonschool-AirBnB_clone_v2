@@ -2,7 +2,6 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from os import getenv
-from models.place import place_amenity
 
 # Association table for Place-Amenity relationship
 if getenv('HBNB_TYPE_STORAGE') == 'db':
@@ -54,5 +53,4 @@ class Place(BaseModel, Base):
             if getenv('HBNB_TYPE_STORAGE') != 'db':
                 if not hasattr(self, 'amenity_ids'):
                     self.amenity_ids = []
-                if obj.id not in self.amenity_ids:
-                    self.amenity_ids.append(obj.id)
+                if obj
