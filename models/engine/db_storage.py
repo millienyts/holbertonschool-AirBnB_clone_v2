@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from os import getenv
-from models.base_model import Base
+from models.base_model import Base, BaseModel
 from models.user import User
 from models.state import State
 from models.city import City
@@ -20,45 +20,53 @@ class DBStorage:
         pwd = getenv('HBNB_MYSQL_PWD')
         host = getenv('HBNB_MYSQL_HOST')
         db = getenv('HBNB_MYSQL_DB')
-        environ = getenv("HBNB_ENV")  # Integrated from code 1
-
-        db_url = f"mysql+mysqldb://{user}:{pwd}@{host}:3306/{db}"
-        self.__engine = create_engine(db_url, pool_pre_ping=True)
-
-        if environ == 'test':  # Logic from code 1 integrated
+        self.__engine = create_engine(
+            f'mysql+mysqldb://{user}:{pwd}@{host}/{db}', pool_pre_ping=True)
+        if getenv('HBNB_ENV') == 'test':
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """Query all objects of a specific class or all classes if cls=None."""
-        objs = {}
+        """Returns dict of current database"""
+        db_dict = {}
+        classes = {
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         if cls:
-            cls = DBStorage.classes().get(cls, cls)  # Dynamic class resolution
-            objs.update({f'{type(obj).__name__}.{
-                        obj.id}': obj for obj in self.__session.query(cls).all()})
-        else:
-            for cls in Base.__subclasses__():
-                cls_name = cls.__name__
-                objs.update(
-                    {f'{cls_name}.{obj.id}': obj for obj in self.__session.query(cls).all()})
-        return objs
+            for key in classes.keys():
+                if cls.__name__ == key:
+                    objects = (self.__session.query(classes[key]).all())
+                    obj_class = key
+                    break
+            for obj in objects:
+                id = obj.id
+                obj_key = '{}.{}'.format(obj_class, id)
+                db_dict[obj_key] = obj
+            return db_dict
+        all_objects = (self.__session.query(City, State, User,
+                                            Place, Review, Amenity).filter(
+            City.state_id == State.id,
+            Place.user_id == User.id,
+            Place.city_id == City.id,
+            Review.place_id == Place.id,
+            Review.user_id == User.id).all())
 
     def new(self, obj):
         """Add the object to the current database session."""
-        if obj:
-            self.__session.add(obj)
+        self.__session.add(obj)
 
     def save(self):
         """Commit all changes of the current database session."""
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete obj from the current database session if not None."""
+        """Delete from the current database session obj if not None."""
         if obj:
-            # Unified delete method, keeping it simple.
             self.__session.delete(obj)
 
     def reload(self):
-        """Create all tables in the database and initialize a new session."""
+        """Reload all tables in the database and create the session."""
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(
             bind=self.__engine, expire_on_commit=False)
