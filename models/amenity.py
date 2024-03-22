@@ -2,6 +2,7 @@ from models.base_model import Base, BaseModel
 from sqlalchemy import Column, String, Table, ForeignKey
 from sqlalchemy.orm import relationship
 from os import getenv
+from models.place import place_amenity
 
 class Amenity(BaseModel, Base):
     __tablename__ = 'amenities'
