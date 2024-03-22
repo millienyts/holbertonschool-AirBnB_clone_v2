@@ -8,79 +8,47 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
+    def all(self):
     def all(self, cls=None):
-        """Returns a dictionary of models currently in storage
-        If cls is provided, returns a dictionary of objects of type cls.
-        """
-        if cls:
-            cls_objects = {k: v for k,
-                           v in self.__objects.items() if isinstance(v, cls)}
-            return cls_objects
-        return self.__objects
+        """Returns a dictionary of models currently in storage"""
+        return FileStorage.__objects
+        if cls is None:
+            return FileStorage.__objects
+        return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
-        key = f"{obj.__class__.__name__}.{obj.id}"
+        self.all().update({obj.to_dict()['__class__'] + '.' + obj.id: obj})
+        key = "{}.{}".format(type(obj).__name__, obj.id)
         self.__objects[key] = obj
+
+    def delete(self, obj=None):
+        """Delete obj from __objects if it's inside"""
+        if obj is not None:
+            key = "{}.{}".format(type(obj).__name__, obj.id)
+            if key in self.__objects:
+                del self.__objects[key]
 
     def save(self):
         """Saves storage dictionary to file"""
-        obj_dict = {obj_id: obj.to_dict()
-                    for obj_id, obj in self.__objects.items()}
-        with open(self.__file_path, 'w') as f:
-            json.dump(obj_dict, f)
+@@ -36,15 +41,16 @@ def reload(self):
+        from models.review import Review
 
-    def reload(self):
-        """Loads storage dictionary from file"""
+        classes = {
+                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
+                    'State': State, 'City': City, 'Amenity': Amenity,
+                    'Review': Review
+                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
-            with open(self.__file_path, 'r') as f:
-                obj_dict = json.load(f)
-            for obj_id, obj_data in obj_dict.items():
-                cls_name = obj_data['__class__']
-                cls = globals().get(cls_name, None)
-                if cls:
-                    self.__objects[obj_id] = cls(**obj_data)
+            temp = {}
+            with open(FileStorage.__file_path, 'r') as f:
+                temp = json.load(f)
+                for key, val in temp.items():
+                        self.all()[key] = classes[val['__class__']](**val)
+                    self.__objects[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
-
-    def delete(self, obj=None):
-        """Deletes obj from __objects"""
-        if obj:
-            key = f"{obj.__class__.__name__}.{obj.id}"
-            if key in self.__objects:
-                del self.__objects[key]
-                self.save()
-
-    def close(self):
-        """Call reload() method for deserializing the JSON file to objects."""
-        self.reload()
-
-
-def execute_command(command, storage):
-    if command.startswith("create"):
-        parts = command.split()
-        model_name = parts[0] if len(parts) > 1 else None
-        attributes = parts[1:]
-
-        if model_name and model_name in globals():
-            model_class = globals()[model_name]
-            instance = model_class()
-            for attr in attributes:
-                key, val = attr.split("=")
-                # Convert attribute value from string to correct type
-                if '"' in val:
-                    val = val.strip('"').replace('_', ' ')
-                elif '.' in val:
-                    val = float(val)
-                else:
-                    val = int(val)
-                setattr(instance, key, val)
-            instance.save()
-            print(f"New ID: {instance.id}")
-        else:
-            print(
-                "** class doesn't exist **" if model_name else "** class name missing **")
-
-
-storage = FileStorage()
-storage.reload()
