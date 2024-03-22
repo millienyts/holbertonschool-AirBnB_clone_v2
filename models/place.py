@@ -2,6 +2,7 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from os import getenv
+from models.place import place_amenity
 
 # Association table for Place-Amenity relationship
 if getenv('HBNB_TYPE_STORAGE') == 'db':
