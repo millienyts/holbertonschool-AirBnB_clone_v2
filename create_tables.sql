@@ -1,3 +1,4 @@
+-- script that creates tables in database
 CREATE TABLE states (
   id VARCHAR(60) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
