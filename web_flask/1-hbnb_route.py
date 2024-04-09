@@ -1,15 +1,16 @@
+#!/usr/bin/python3
 from flask import Flask
+from flask import render_template
 
 app = Flask(__name__)
 
-
+# Route to display "Hello HBNB!"
 @app.route('/', strict_slashes=False)
 def hello_hbnb():
     return 'Hello HBNB!'
 
-
 @app.route('/hbnb', strict_slashes=False)
-def display_hbnb():
+def hbnb():
     return 'HBNB'
 
 
