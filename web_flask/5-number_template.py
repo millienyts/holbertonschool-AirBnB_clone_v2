@@ -1,46 +1,68 @@
 #!/usr/bin/python3
-"""Starts a Flask web application"""
-
-from flask import Flask, render_template
+'''
+    This is a Flask app
+'''
+from flask import Flask
+from flask import render_template
 
 app = Flask(__name__)
 
 
+# Route to display "Hello HBNB!"
 @app.route('/', strict_slashes=False)
 def hello_hbnb():
-    """Displays 'Hello HBNB!'"""
+    '''
+        This function prints Hello HBNB!
+    '''
     return 'Hello HBNB!'
 
 
 @app.route('/hbnb', strict_slashes=False)
-def display_hbnb():
-    """Displays 'HBNB'"""
+def hbnb():
+    '''
+        This function prints HBNB
+    '''
     return 'HBNB'
 
 
 @app.route('/c/<text>', strict_slashes=False)
-def display_c(text):
-    """Displays 'C ' followed by the value of the text variable"""
-    return 'C {}'.format(text.replace('_', ' '))
+def c_display(text="is cool"):
+    '''
+        This function prints c <text>
+    '''
+    text = text.replace('_', ' ')
+    return f"C {text}"
 
 
-@app.route('/python/', defaults={'text': 'is cool'}, strict_slashes=False)
+# Both routes apply to the same method
+@app.route('/python/', strict_slashes=False)
 @app.route('/python/<text>', strict_slashes=False)
-def display_python(text):
-    """Displays 'Python ' followed by the value of the text variable"""
-    return 'Python {}'.format(text.replace('_', ' '))
+def python_display(text="is cool"):
+    '''
+        This function prints python <text>/ is cool
+    '''
+    text = text.replace('_', ' ')
+    return f"Python {text}"
 
 
 @app.route('/number/<int:n>', strict_slashes=False)
+def int_display(n):
+    '''
+        This function prints number <n>
+    '''
+    if n.isdigit():
+        return f'{n} is a number'
+    else:
+        return '404 not found'
+
+
+@app.route('/number_template/<int:n>')
 def display_number(n):
-    """Displays 'n is a number' only if n is an integer"""
-    return '{} is a number'.format(n)
-
-
-@app.route('/number_template/<int:n>', strict_slashes=False)
-def display_number_template(n):
-    """Displays an HTML page only if n is an integer"""
-    return render_template('5-number.html', n=n)
+    '''
+        This function renders a template and sends number <n>
+    '''
+    if isinstance(n, int):
+        return (render_template('5-number.html', number=n))
 
 
 if __name__ == '__main__':
