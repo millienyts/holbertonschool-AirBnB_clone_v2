@@ -1,36 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>HBNB</title>
-  </head>
-  <body>
-    <h1>States</h1>
-    <ul>
-      <li>421a55f4-7d82-47d9-b54c-a76916479545: <b>Alabama</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479546: <b>Arizona</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479547: <b>California</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479548: <b>Colorado</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479549: <b>Florida</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479550: <b>Georgia</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479551: <b>Hawaii</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479552: <b>Illinois</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479553: <b>Indiana</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479554: <b>Louisiana</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479555: <b>Minnesota</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479556: <b>Mississippi</b></li>
-
-      <li>421a55f4-7d82-47d9-b54c-a76916479557: <b>Oregon</b></li>
-    </ul>
-  </body>
-</html>
+<!DOCTYPE HTML>
+<HTML lang="en">
+  <HEAD>
+    <TITLE>States</TITLE>
+  </HEAD>
+  <BODY>
+    {% if states %}
+    <H1>States</H1>
+    <UL>
+      {% for state in states|sort(attribute='name') %}
+      <LI>{{ state.id }}: <B>{{ state.name }}</B></LI>
+      {% endfor %}
+    </UL>
+    {% else %}
+    <H1>State: {{state.name}}</H1>
+    <H3>Cities</H3>
+    <UL>
+      {% for city in state.cities|sort(attribute='name') %}
+      <LI>{{city.id}}: <B>{{city.name}}</B></LI>
+      {% endfor %}
+    </UL>
+    {% endif %}
+  </BODY>
+</HTML>
