@@ -1,52 +1,87 @@
 #!/usr/bin/python3
-"""Starts a Flask web application"""
-
-from flask import Flask, render_template
+'''
+    Flask app
+'''
+from flask import Flask
+from flask import render_template
 
 app = Flask(__name__)
 
 
+# Route to display "Hello HBNB!"
 @app.route('/', strict_slashes=False)
 def hello_hbnb():
-    """Displays 'Hello HBNB!'"""
+    '''
+        Prints Hello HBNB!
+    '''
     return 'Hello HBNB!'
 
 
+# Route to display "HBNB"
 @app.route('/hbnb', strict_slashes=False)
-def display_hbnb():
-    """Displays 'HBNB'"""
+def hbnb():
+    '''
+        Prints HBNB
+    '''
     return 'HBNB'
 
 
+# Route to display "c <text>"
 @app.route('/c/<text>', strict_slashes=False)
-def display_c(text):
-    """Displays 'C ' followed by the value of the text variable"""
-    return 'C {}'.format(text.replace('_', ' '))
+def c_display(text="is cool"):
+    '''
+        Prints c <text>
+    '''
+    text = text.replace('_', ' ')
+    return f"C {text}"
 
 
-@app.route('/python/', defaults={'text': 'is cool'}, strict_slashes=False)
+# Route to display "python <text>/ is cool"
+@app.route('/python/', strict_slashes=False)
 @app.route('/python/<text>', strict_slashes=False)
-def display_python(text):
-    """Displays 'Python ' followed by the value of the text variable"""
-    return 'Python {}'.format(text.replace('_', ' '))
+def python_display(text="is cool"):
+    '''
+        Prints python <text>/ is cool
+    '''
+    text = text.replace('_', ' ')
+    return f"Python {text}"
 
 
+# Route to display "number <n>"
 @app.route('/number/<int:n>', strict_slashes=False)
+def int_display(n):
+    '''
+        prints number <n>
+    '''
+    # Check if n is an integer
+    if isinstance(n, int):
+        return f'{n} is a number'
+    else:
+        return '404 not found'
+
+
+# Route to display number_template with n
+@app.route('/number_template/<int:n>')
 def display_number(n):
-    """Displays 'n is a number' only if n is an integer"""
-    return '{} is a number'.format(n)
+    '''
+        Renders template and also number <n> is sent
+    '''
+    # Check if n is an integer
+    if isinstance(n, int):
+        return render_template('5-number.html', number=n)
 
 
-@app.route('/number_template/<int:n>', strict_slashes=False)
-def display_number_template(n):
-    """Displays an HTML page only if n is an integer"""
-    return render_template('5-number.html', n=n)
-
-
-@app.route('/number_odd_or_even/<int:n>', strict_slashes=False)
-def display_number_odd_or_even(n):
-    """Displays an HTML page only if n is an integer"""
-    return render_template('6-number_odd_or_even.html', n=n)
+# Route to display number_odd_or_even with n
+@app.route('/number_odd_or_even/<int:n>')
+def display_even_odd(n):
+    # Check if n is an integer
+    if isinstance(n, int):
+        n_type = 'odd'
+        # Determine if n is even or odd
+        if n % 2 == 0:
+            n_type = 'even'
+        return render_template('6-number_odd_or_even.html', number=n,
+                               number_type=n_type)
 
 
 if __name__ == '__main__':
